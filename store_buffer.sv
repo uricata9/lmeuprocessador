@@ -9,11 +9,21 @@ module store_buffer (
     output hit_storeBuffer,
     output [63:0] data_to_cache,
     output sending_data_to_cache,
-    output storeBuffer_full);
+    output storeBuffer_full,
+    output exists_address);
 
 
     reg [63:0] storeBuffer [0:3];
     reg storeBuffer_valid [0:3];
+
+    wire pos_0, pos_1,pos_2,pos_3;
+
+    assign pos_0 = storeBuffer_line[0][63:32] & address & storeBuffer_valid[0];
+    assign pos_1 = storeBuffer_line[0][63:32] & address & storeBuffer_valid[1];
+    assign pos_2 = storeBuffer_line[0][63:32] & address & storeBuffer_valid[2];
+    assign pos_3 = storeBuffer_line[0][63:32] & address & storeBuffer_valid[3];
+
+    assign exists_address = pos_0 | pos_1 | pos_2 | pos_3;
 
     always @ (posedge clk) begin
 

@@ -122,7 +122,9 @@ module data_cache (
         else if (!pending_req && req_valid && mem_write) begin
             if (dataTag [row] == addr_tag) begin
                 if (dataValid [row] == 1'b1) begin
+                    
                     {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [addr_index][addr_byte + 1], dataCache [addr_index][addr_byte] } = writedata;
+                    // TODO: write should go to the store_buffer
                     cache_hit=1'b1;
                     dataDirty[row]=1;
                 end
