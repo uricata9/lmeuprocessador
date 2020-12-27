@@ -30,7 +30,7 @@ module data_cache (
     assign addr_byte = address[3:0];
     assign    addr_index = address[5:4];
         
-    assign    addr_tag = address[31:9];
+    assign    addr_tag = address[31:6];
     integer row;
     always @ (posedge clk) begin
     

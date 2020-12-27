@@ -5,9 +5,9 @@ module ram_memory(
     input [127:0] data_to_write,
     input write_to_mem);
 
-    reg [25:0] memory [10485:0]; //han de ser 20 bits per addreces fisiques
+    reg [31:0] memory [10485:0]; //han de ser 20 bits per addreces fisiques
 
-    reg [127:0] shifted_adress;
+    reg [31:0] shifted_adress;
 
     always @ (*) begin
         
@@ -52,8 +52,8 @@ module ram_memory(
         end
         
         else begin
-            
-            data_returned = {memory[data_requested + 3], memory[data_requested + 2], memory[data_requested + 1], memory[data_requested]};
+            shifted_adress = data_requested << 2;
+            data_returned = {memory[shifted_adress + 3], memory[shifted_adress + 2], memory[shifted_adress + 1], memory[shifted_adress]};
             if (write_to_mem == 1'b1) begin
                 {memory[shifted_adress + 3], memory[shifted_adress + 2], memory[shifted_adress + 1], memory[shifted_adress]} = data_to_write;
             end
