@@ -47,7 +47,7 @@ module data_cache (
             end
         end
 
-        case ({addr_index})
+        /*case ({addr_index})
 
             2'b00: begin
                 row = 0;
@@ -65,7 +65,9 @@ module data_cache (
                 row = 3;
             end
             
-        endcase
+        endcase*/
+
+        row = addr_index;
 
         if (pending_req && read_ready_from_mem == 1'b1) begin
                         
@@ -128,6 +130,9 @@ module data_cache (
                     cache_hit=1'b1;
                     dataDirty[row]=1;
                 end
+            end
+            else begin
+                cache_hit = 1'b0;
             end
 
             if (cache_hit == 1'b0) begin
