@@ -5,7 +5,7 @@ module top_test_cache(
 
     wire mem_read,mem_write;
     wire [31:0] address,writedata;
-    wire [25:0] reqAddrD_mem;
+    wire [25:0] reqAddrD_mem,reqAddrD_write_mem;
     wire reqD_mem,read_ready_for_dcache,written_data_ack;
     wire reqD_cache_write;
     wire [127:0] data_to_cache,data_to_mem;
@@ -39,7 +39,8 @@ module top_test_cache(
         .reqD_mem (reqD_mem),
         .reqAddrD_mem ( reqAddrD_mem),
         .reqD_cache_write ( reqD_cache_write),
-        .data_to_mem ( data_to_mem)
+        .data_to_mem ( data_to_mem),
+        .reqAddrD_write_mem(reqAddrD_write_mem)
     );
     memory_controller memory_controller(
         .clk(clk), 
@@ -53,7 +54,8 @@ module top_test_cache(
         .data_to_cache (data_to_cache),
         .read_ready_for_icache (read_ready_for_icache),
         .read_ready_for_dcache(read_ready_for_dcache),
-        .written_data_ack (written_data_ack)
+        .written_data_ack (written_data_ack),
+        .reqAddrD_write_mem(reqAddrD_write_mem)
     );
 
 

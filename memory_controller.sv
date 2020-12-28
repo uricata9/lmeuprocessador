@@ -4,6 +4,7 @@ module memory_controller (
     input reqD_cache,
     input reqD_cache_write,
     input [25:0] reqAddrD_mem,
+    input [25:0] reqAddrD_write_mem,
     input [25:0] reqAddrI_mem,
     input [127:0] data_from_cache,
     output reg [127:0] data_to_cache,
@@ -18,7 +19,7 @@ module memory_controller (
     
     reg arbitror;
 
-    reg [25:0] data_req_to_mem;
+    reg [25:0] data_req_to_mem,where_to_write;
     reg [127:0] data_req_by_cache;
     reg write_to_mem;
     reg [127:0] data_to_write;
@@ -27,7 +28,8 @@ module memory_controller (
         .data_requested(data_req_to_mem),
         .data_returned(data_req_by_cache),
         .data_to_write(data_to_write),
-        .write_to_mem(write_to_mem)
+        .write_to_mem(write_to_mem),
+        .where_to_write(where_to_write)
     );
 
 
@@ -63,6 +65,7 @@ module memory_controller (
                 data_req_to_mem = reqAddrD_mem;
                 if (reqD_cache_write == 1'b1) begin
                     data_to_write = data_from_cache;
+                    where_to_write = reqAddrD_write_mem;
                     write_to_mem = 1'b1;
                     written_data_ack = 1'b1;
                 end

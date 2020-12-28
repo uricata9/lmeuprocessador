@@ -11,7 +11,8 @@ module data_cache (
     output reg reqD_mem,
     output reg [25:0] reqAddrD_mem,
     output reg reqD_cache_write,
-    output reg [127:0] data_to_mem);
+    output reg [127:0] data_to_mem,
+    output reg [25:0] reqAddrD_write_mem);
 
     reg [127:0] dataCache [0:3];
     reg [25:0] dataTag [0:3];
@@ -44,6 +45,7 @@ module data_cache (
                 dataValid[k] = 0;
                 reqD_mem = 1'b0;
                 reqD_cache_write = 1'b0;
+                reqAddrD_write_mem =26'b0;
             end
         end
 
@@ -147,6 +149,7 @@ module data_cache (
                     //escriure a meme
                     pending_req = 1'b1;
                     data_to_mem = dataCache [row];
+                    reqAddrD_write_mem = {dataTag[row],row,4'b0000};
                     reqAddrD_mem = address[31:4];
                     reqD_mem = 1'b1;
                     ready_next = 1'b0;

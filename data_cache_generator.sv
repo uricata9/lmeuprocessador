@@ -5,8 +5,8 @@ module data_cache_generator (
     output reg mem_read, mem_write,
     output reg [31:0] address, writedata);
 
-    reg [31:0] coses_a_fer [31:0];
-    reg reads [31:0];
+    reg [31:0] coses_a_fer [63:0];
+    reg reads [63:0];
     reg writes [63:0];
     reg blocked;
     reg [31:0] coses_a_escriure [31:0];
@@ -28,7 +28,7 @@ module data_cache_generator (
             for (int i = 0; i < 31;i++) begin
                 reads[i] = 1;
             end
-            for (int i = 20; i < 32;i++) begin
+            for (int i = 20; i < 64;i++) begin
                 reads[i] = 0;
             end
             for (int i = 20; i < 64;i++) begin
