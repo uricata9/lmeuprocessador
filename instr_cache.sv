@@ -1,98 +1,109 @@
 module instr_cache (    
-    input clk, reset,zero, 
-    input [31:0] address,
+    input clk, reset,flush, 
+    input mem_read,
+    input [31:0] address, 
+    output reg [31:0] readdata,
     input [127:0] data_from_mem,
     input read_ready_from_mem,
-    output reqI_mem,
-    output [31:0] reqAddrI_mem,
-    output [31:0] instruction);
+    input written_data_ack,
+    output reg reqI_mem,
+    output reg [25:0] reqAddrI_mem);
 
-    reg [127:0] instCache [0:3];
-    reg [17:0] instTag [0:3];
-    reg instValid [0:3];
-    reg [1:0] countValid [0:3];
+    reg [127:0] dataCache [0:3];
+    reg [25:0] dataTag [0:3];
+    reg dataValid [0:3];
 
-    logic [1:0] addr_byte, addr_index;
-    wire [17:0] addr_tag;
-    wire req_valid;
-    wire pending_req;
-    wire ready_next;
+    wire [3:0] addr_byte;
+    wire [1:0] addr_index;
+    wire [25:0] addr_tag;
+    reg req_valid;
+    reg pending_req;
+    reg ready_next;
     wire [31:0] next_instruction;
-    wire cache_hit;
-    wire [1:0] lastcountValid;
+    reg cache_hit;
 
+    assign addr_byte = address[3:0];
+    assign    addr_index = address[5:4];
+        
+    assign    addr_tag = address[31:6];
+    integer row;
     always @ (posedge clk) begin
-        
-        addr_byte = address[6:0];
-        addr_index = address[8:7];
-        
-        addr_tag = address[31:9];
-  	    cache_hit = 1'b0;
+    
          
-        if (reset) begin
+        if (reset == 1'b1 || flush == 1'b1) begin
             for (int k = 0; k < 4; k++) begin         
-                countValid [k*2+1:k*2] = 2'b00;
+                cache_hit = 1'b0;
+                req_valid = 1'b1;
+                pending_req = 1'b0;
+                dataValid[k] = 0;
+                reqI_mem = 1'b0;
             end
-        
         end
 
-        if (!pending_req && req_valid) begin
-            for (int i=0; i < 4; i++) begin
-                if (instTag [i*18+17:i*18] == addr_tag) begin
-                    if (instValid [i] == 1'b1) begin
-                        next_instruction = instCache [addr_index*128+addr_byte+31:addr_index*128+addr_byte];
-                        cache_hit=1'b1;
+        /*case ({addr_index})
+
+            2'b00: begin
+                row = 0;
+            end
+
+            2'b01: begin
+                row = 1;
+            end
+
+            2'b10: begin
+                row = 2;
+            end
+
+            2'b11: begin
+                row = 3;
+            end
+            
+        endcase*/
+
+        row = addr_index;
+
+        if (pending_req && read_ready_from_mem == 1'b1) begin
                         
-                        lastcountValid = countValid [i*2];
+            
+            dataCache [row] = data_from_mem;
+            dataTag [row] = addr_tag;
+            pending_req = 1'b0;
+            dataValid [row] = 1'b1;
+            ready_next = 1'b1;
+            readdata = {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [row][addr_byte + 1], dataCache [row][addr_byte] };
+            reqI_mem = 1'b0;
+            
 
-                        for (int k = 0; k < 4; k++) begin
-                            if (i != k && countValid[k*2+1:k*2] < lastcountValid[k*2+1:k*2]) begin
-                                countValid [k*2+1:k*2] = countValid [k*2+1:k*2] + 2'b01;
-                            end
-                        end
+                
+        end
+        
+        if (pending_req == 1'b1 && written_data_ack == 1'b1) begin
+            pending_req = 1'b0;
+        end
 
-                        countValid [i*2+1:i*2] == 2'b00;
-
-                    end
+        if (!pending_req && req_valid && mem_read) begin
+            if (dataTag [row] == addr_tag) begin
+                if (dataValid [row] == 1'b1) begin
+                    readdata = {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [row][addr_byte + 1], dataCache [row][addr_byte] };
+                    cache_hit=1'b1;
                 end
+            end
+
+            else begin
+                cache_hit = 1'b0;
             end
 
             if (cache_hit == 1'b0) begin
+        
                 pending_req = 1'b1;
-                reqAddrI_mem = address[31:7];
+                reqAddrI_mem = address[31:4];
                 reqI_mem = 1'b1;
                 ready_next = 1'b0;
+
             end
         end
 
-        row_cache = -1; //undefined
 
-        if (read_ready_from_mem == 1'b1) begin
-            
-            for (int i=0; i < 4; i++) begin
-                if (instValid [i] == 1'b0) begin
-                    row_cache = i;
-                end
-
-            if (row_cache == -1) begin
-                for (int i=0; i < 4; i++) begin
-                    if (countValid [i*2+1:i*2] == 2'b11) begin
-                        row_cache = i;
-                        countValid [i*2+1:i*2] = 2'b00;
-                    end
-                    else begin
-                        countValid [i*2+1:i*2] = countValid [i*2+1:i*2] + 2'b01;
-                    end
-                end
-            end
-
-            instCache [row_cache*128+127:row_cache*128] = data_from_mem;
-            instTag [row_cache*18+17:row_cache*18] = addr_tag;
-            pending_req = 1'b0;
-            instValid [row_cache] = 1'b1;
-            ready_next = 1'b1;
-            next_instruction = instCache [addr_index*128+addr_byte+32:addr_index*128+addr_byte];
-        end
 
     end
 
