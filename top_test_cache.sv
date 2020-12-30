@@ -13,7 +13,7 @@ module top_test_cache(
     wire [25:0] reqAddrI_mem;
     reg [31:0] readdata;
     
-    data_cache_generator data_cache_generator(
+    data_cache_generator_store_buffer data_cache_generator(
         .clk(clk), 
         .reset(reset),
         .flush(flush),
