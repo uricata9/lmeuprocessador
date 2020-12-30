@@ -19,9 +19,9 @@ module store_buffer (
     wire pos_0, pos_1,pos_2,pos_3;
 
     assign pos_0 = storeBuffer[0][63:32] & address & storeBuffer_valid[0];
-    assign pos_1 = storeBuffer[0][63:32] & address & storeBuffer_valid[1];
-    assign pos_2 = storeBuffer[0][63:32] & address & storeBuffer_valid[2];
-    assign pos_3 = storeBuffer[0][63:32] & address & storeBuffer_valid[3];
+    assign pos_1 = storeBuffer[1][63:32] & address & storeBuffer_valid[1];
+    assign pos_2 = storeBuffer[2][63:32] & address & storeBuffer_valid[2];
+    assign pos_3 = storeBuffer[3][63:32] & address & storeBuffer_valid[3];
 
     assign exists_address = pos_0 | pos_1 | pos_2 | pos_3;
     int valid;

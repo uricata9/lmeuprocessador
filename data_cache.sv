@@ -3,7 +3,8 @@ module data_cache (
     input mem_read,
     input mem_write, 
     input [31:0] address, 
-    input [31:0] writedata, 
+    input [31:0] writedata,
+    input cache_ready_to_catch, //comes from control when alu instruction is executed
     output reg [31:0] readdata,
     input [127:0] data_from_mem,
     input read_ready_from_mem,
@@ -33,6 +34,42 @@ module data_cache (
         
     assign    addr_tag = address[31:6];
     integer row;
+
+    wire [31:0] data_read_store_buffer;
+    wire [63:0] data_to_write_from_SB;
+    wire hit_storeBuffer,storeBuffer_full,exists_address_in_SB;
+    wire sending_data_to_cache;
+    int count_flush_SB;
+    
+
+    store_buffer store_buffer(
+        .clk(clk),
+        .reset(reset),
+        .flush(flush),
+        .mem_read(mem_read),
+        .mem_write(mem_write),
+        .address(address),
+        .writedata(writedata),
+        .cache_ready_to_catch(cache_ready_to_catch),
+        .data_read(data_read_store_buffer),
+        .hit_storeBuffer(hit_storeBuffer),
+        .data_to_cache(data_to_write_from_SB),
+        .sending_data_to_cache(sending_data_to_cache),
+        .storeBuffer_full(storeBuffer_full),
+        .exists_address(exists_address_in_SB)
+
+    );
+
+    assign cache_ready_to_catch = (!mem_read & !mem_write) || storeBuffer_full;
+
+    mux2Data dataread_StoreBuffer(
+        .select(hit_storeBuffer)
+        .a(readdata_intern)
+        .b(data_read_store_buffer)
+        .y(readdata)
+    )
+
+
     always @ (posedge clk) begin
     
          
@@ -46,6 +83,7 @@ module data_cache (
                 reqD_mem = 1'b0;
                 reqD_cache_write = 1'b0;
                 reqAddrD_write_mem =26'b0;
+                count_flush_SB = 0;
             end
         end
 
@@ -71,6 +109,12 @@ module data_cache (
 
         row = addr_index;
 
+        if (storeBuffer_full == 1'b1 || count_flush_SB != 3) begin
+            pending_req= 1'b1;
+            ready_next = 1'b0;
+            count_flush_SB = count_flush_SB +1;
+        end
+
         if (pending_req && read_ready_from_mem == 1'b1) begin
                         
             if (dataDirty[row] == 0) begin
@@ -79,7 +123,7 @@ module data_cache (
                 pending_req = 1'b0;
                 dataValid [row] = 1'b1;
                 ready_next = 1'b1;
-                readdata = {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [row][addr_byte + 1], dataCache [row][addr_byte] };
+                readdata_intern = {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [row][addr_byte + 1], dataCache [row][addr_byte] };
                 reqD_mem = 1'b0;
             end
 
@@ -93,7 +137,7 @@ module data_cache (
         if (!pending_req && req_valid && mem_read) begin
             if (dataTag [row] == addr_tag) begin
                 if (dataValid [row] == 1'b1) begin
-                    readdata = {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [row][addr_byte + 1], dataCache [row][addr_byte] };
+                    readdata_intern = {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [row][addr_byte + 1], dataCache [row][addr_byte] };
                     cache_hit=1'b1;
                 end
             end
@@ -128,7 +172,6 @@ module data_cache (
                 if (dataValid [row] == 1'b1) begin
                     
                     {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [addr_index][addr_byte + 1], dataCache [addr_index][addr_byte] } = writedata;
-                    // TODO: write should go to the store_buffer
                     cache_hit=1'b1;
                     dataDirty[row]=1;
                 end
@@ -159,6 +202,23 @@ module data_cache (
             end
         end
 
+        if (!pending_req  && req_valid && sending_data_to_cache)
+            
+            int addr_byte_SB = data_to_write_from_SB[35:32];
+            row = data_to_write_from_SB[37:36];
+                
+            {dataCache [row][addr_byte_SB + 3],dataCache [row][addr_byte_SB + 2], dataCache [addr_index][addr_byte_SB + 1], dataCache [addr_index][addr_byte_SB] } = data_to_write_from_SB[31:0];
+            // TODO: write should go to the store_buffer
+            cache_hit=1'b1;
+            dataDirty[row]=1;
+            
+        end
+
+        if (count_flush_SB == 3) begin
+            pending_req= 1'b0;
+            ready_next = 1'b1;
+            count_flush_SB = 0;
+        end
 
     end
 
