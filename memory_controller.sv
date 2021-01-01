@@ -58,7 +58,7 @@ module memory_controller (
         end
 
         //accessing logic counter
-        if (count_mem_received == 5) begin
+        if (count_mem_received == 4) begin
             attending_mem_access = 1'b1;
             count_mem_received = 0;
             if (arbitror == 1'b0) begin
@@ -78,7 +78,7 @@ module memory_controller (
         end
 
         //response logic counter
-        if (count_mem_response == 5) begin
+        if (count_mem_response == 4) begin
             data_to_cache = data_req_by_cache;
             count_mem_response = 0;
             if (arbitror == 1'b0) begin
