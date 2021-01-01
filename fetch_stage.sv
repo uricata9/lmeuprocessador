@@ -3,8 +3,13 @@ module fetch_stage(
     input clk,reset,writePCEn,flush,
     input BRANCH, 
     input EN_REG,
+    input [127:0] instr_from_mem,
+    input read_ready_from_mem,
+    input written_data_ack_from_mem,
     output reg [31:0] PCnext,
-    output reg [31:0] instruction);
+    output reg [31:0] instruction,
+    output reg reqI_mem,
+    output reg [25:0] reqAddrI_mem);
 
     wire [31:0] PC_internal_plus_4,PC_address_to_PC,instruction_internal;
     reg [31:0] PC;
@@ -17,13 +22,25 @@ module fetch_stage(
 
     assign PC_internal_plus_4 = PC +4;
 
-    test_instrMem inst_cache(
+    /*test_instrMem inst_cache(
         .rst(reset),
         .addr(PC_internal_plus_4),
         .instruction(instruction_internal)
+    );*/
+
+    instr_cache instr_cache(
+        .clk(clk),
+        .reset(reset),
+        .flush(flush), 
+        .mem_read(EN_REG),
+        .address(PCnext), 
+        .readdata(instruction_internal),
+        .data_from_mem(instr_from_mem),
+        .read_ready_from_mem(read_ready_from_mem),
+        .written_data_ack(written_data_ack_from_mem),
+        .reqI_mem(reqI_mem),
+        .reqAddrI_mem(reqAddrI_mem)
     );
-
-
 
 
     //STAGE REGISTER 

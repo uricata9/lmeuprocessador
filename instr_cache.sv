@@ -61,7 +61,7 @@ module instr_cache (
         endcase*/
 
         row = addr_index;
-
+        cache_hit=1'b0;
         if (pending_req && read_ready_from_mem == 1'b1) begin
                         
             
@@ -70,7 +70,6 @@ module instr_cache (
             pending_req = 1'b0;
             dataValid [row] = 1'b1;
             ready_next = 1'b1;
-            readdata = {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [row][addr_byte + 1], dataCache [row][addr_byte] };
             reqI_mem = 1'b0;
             
 
@@ -84,7 +83,7 @@ module instr_cache (
         if (!pending_req && req_valid && mem_read) begin
             if (dataTag [row] == addr_tag) begin
                 if (dataValid [row] == 1'b1) begin
-                    readdata = {dataCache [row][addr_byte + 3],dataCache [row][addr_byte + 2], dataCache [row][addr_byte + 1], dataCache [row][addr_byte] };
+                    readdata = {dataCache [row][addr_byte*8 +: 31]};
                     cache_hit=1'b1;
                 end
             end

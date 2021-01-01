@@ -7,6 +7,8 @@ module decode_stage(
     input [31:0]registerD_data,
     input RegW_en,
     input EN_REG,
+    input block_pipe_data_cache,
+    input block_pipe_instr_cache,
     output reg [31:0] RegAdata,
     output reg [31:0] RegBdata,
     output reg [31:0] lower_half_instruction,
@@ -34,6 +36,9 @@ module decode_stage(
     wire [4:0] regA_int, regB_int, regD_init,regD_int;
     wire EN_REG_FETCH_INT, EN_REG_DECODE_INT, EN_REG_ALU_INT, EN_REG_MEM_INT;
     wire is_immediate_int;
+
+    wire [31:0] inject_nop;
+    wire injecting_nop;
     
     
     assign EN_REG_FETCH = EN_REG_FETCH_INT;
@@ -60,7 +65,11 @@ module decode_stage(
         .EN_REG_DECODE(EN_REG_DECODE_INT),
         .EN_REG_ALU(EN_REG_ALU_INT),
         .EN_REG_MEM(EN_REG_MEM_INT),
-        .is_immediate(is_immediate_int)
+        .is_immediate(is_immediate_int),
+        .block_pipe_instr_cache(block_pipe_instr_cache),
+        .block_pipe_data_cache(block_pipe_data_cache),
+        .inject_nop(inject_nop),
+        .injecting_nop(injecting_nop)
     );
 
 
@@ -75,10 +84,17 @@ module decode_stage(
         .regB_data(regBdata_internal)
     );
 
+    mux2Data nop_injection(
+        .a(instruction),
+        .b(inject_nop),
+        .y(instruction_internal),
+        .select(injecting_nop)
+    );
 
-    assign lower_half_instruction_internal = { {16{instruction[31]}}, instruction };
-    assign regD_reg_internal = instruction[20:16];
-    assign regD_imme_internal = instruction[15:11];
+
+    assign lower_half_instruction_internal = { {16{instruction_internal[31]}}, instruction_internal };
+    assign regD_reg_internal = instruction_internal[20:16];
+    assign regD_imme_internal = instruction_internal[15:11];
 
 
     //STAGE REGISTER 

@@ -1,5 +1,5 @@
 module mem_stage(
-    input clk, reset,zero, 
+    input clk, reset,zero, flush,
     input WB_EN_INIT, MEM_R_EN_INIT, MEM_W_EN_INIT,
     input [31:0] regBdata_write_data,regData_address,
     input [31:0] PCNEXT_INIT,
@@ -13,22 +13,50 @@ module mem_stage(
     output reg [31:0] alu_result,
     output reg BRANCH,
     output reg [31:0] PCNEXT,
-    output reg [4:0] regD
-    
+    output reg [4:0] regD,
+    input [127:0] data_from_mem,
+    input read_ready_from_mem,
+    input written_data_ack_from_mem,
+    output reg reqD_mem,
+    output reg [25:0] reqAddrD_mem,
+    output reg [127:0] data_to_mem,
+    output reg reqD_cache_write,
+    output reg [25:0] reqAddrD_write_mem,
+    output reg reqD_stop    
 );
 
     wire [31:0] read_data_mem_intern;
     assign BRANCH = is_BRANCH & zero;
     //assign read_data_mem_intern=read_data_mem;
 
+    data_cache data_cache(
+        .clk(clk), 
+        .reset(reset),
+        .flush(flush), 
+        .mem_read(MEM_R_EN_INIT),
+        .mem_write(MEM_W_EN_INIT), 
+        .address(regData_address), 
+        .writedata(regBdata_write_data), 
+        .readdata(read_data_mem_intern),
 
-    test_dataMem test_data_mem(
+        .data_from_mem ( data_from_mem),
+        .read_ready_from_mem (read_ready_from_mem),
+        .written_data_ack( written_data_ack_from_mem),
+        .reqD_mem (reqD_mem),
+        .reqD_stop(reqD_stop),
+        .reqAddrD_mem ( reqAddrD_mem),
+        .reqD_cache_write ( reqD_cache_write),
+        .data_to_mem ( data_to_mem),
+        .reqAddrD_write_mem(reqAddrD_write_mem)
+    );
+
+    /*test_dataMem test_data_mem(
         .mem_read(MEM_R_EN_INIT),
         .memwrite(MEM_W_EN_INIT),
         .address(regData_address),
         .writedata(regBdata_write_data),
         .readdata(read_data_mem_intern)
-    );
+    )*/
 
  //STAGE REGISTER 
     always @ (posedge clk) begin

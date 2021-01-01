@@ -2,6 +2,8 @@ module control (
     
     input clk,reset,
     input [31:0] instruction,
+    input block_pipe_data_cache,
+    input block_pipe_instr_cache,
     output reg ALU_REG_DEST,
     output reg is_branch,
     output reg MEM_R_EN, MEM_W_EN,
@@ -11,7 +13,9 @@ module control (
     output reg [5:0] FUNCTION ,
     output reg [4:0] regA, regB, regD,
     output reg EN_REG_FETCH, EN_REG_DECODE, EN_REG_ALU, EN_REG_MEM,
-    output reg is_immediate
+    output reg is_immediate,
+    output reg [31:0] inject_nop,
+    output reg injecting_nop
     );
 
     // Reg to Reg           //Reg-Immediate     //Branch            //Jump
@@ -256,6 +260,31 @@ module control (
             //5'b10000: begin
             //5'b10001: begin
         endcase
+
+        if (block_pipe_instr_cache == 1'b1) begin
+            EN_REG_FETCH = 0;
+            EN_REG_DECODE = 1;
+            EN_REG_ALU = 1;
+            EN_REG_MEM = 1;
+            injecting_nop = 1'b1;
+        end
+        else begin
+            EN_REG_FETCH = 1;
+            injecting_nop = 1'b0;
+        end
+
+        if (block_pipe_data_cache  == 1'b1) begin
+            EN_REG_FETCH = 0;
+            EN_REG_DECODE = 0;
+            EN_REG_ALU = 0;
+            EN_REG_MEM = 0;     
+        end
+        else if (block_pipe_data_cache  == 1'b0 && block_pipe_instr_cache == 1'b0) begin
+            EN_REG_FETCH = 1;
+            EN_REG_DECODE = 1;
+            EN_REG_ALU = 1;
+            EN_REG_MEM = 1;     
+        end
     end 
     always @ (reset) begin
 
@@ -264,6 +293,10 @@ module control (
             EN_REG_DECODE = 1;
             EN_REG_ALU = 1;
             EN_REG_MEM = 1;
+            inject_nop= 32'b0;
+            injecting_nop = 1'b0;
         end
+
+        
     end 
 endmodule // register

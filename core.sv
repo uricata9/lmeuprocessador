@@ -58,6 +58,26 @@ module core(
 
     wire EN_REG_FETCH, EN_REG_DECODE, EN_REG_ALU, EN_REG_MEM;
 
+    //CONTROL MEM AND BLOCKED PIPE
+
+    // fetch - RAM
+    wire reqI_cache, read_ready_for_icache, write,written_data_ack;
+    wire [127:0] data_to_cache,data_to_mem;
+    wire [25:0] reqAddrI_mem;
+    // fetch - Decode
+
+    // MEM - RAM
+
+    wire reqD_cache, reqD_stop,reqD_cache_write;
+    wire read_ready_for_dcache;
+    wire [25:0] reqAddrD_mem,reqAddrD_write_mem;
+
+    wire block_pipe_data_cache, block_pipe_instr_cache;
+
+    assign block_pipe_data_cache = reqD_cache | reqD_stop;
+
+    assign block_pipe_instr_cache = reqI_cache;
+
     fetch_stage fetch_state(
         .PCbranch(PCNEXT_TO_FETCH),
         .clk(clk),
@@ -67,7 +87,12 @@ module core(
         .BRANCH(BRANCH_TO_FETCH),
         .PCnext(PCnext_to_decode),
         .instruction(instruction_to_decode),
-        .EN_REG ( EN_REG_FETCH)
+        .EN_REG ( EN_REG_FETCH),
+        .read_ready_from_mem(read_ready_for_icache),
+        .written_data_ack_from_mem(written_data_ack),
+        .reqI_mem(reqI_cache),
+        .reqAddrI_mem(reqAddrI_mem),
+        .instr_from_mem(data_to_cache)
     );
 
     decode_stage decode_state(
@@ -100,7 +125,9 @@ module core(
         .EN_REG_DECODE(EN_REG_DECODE),
         .EN_REG_ALU(EN_REG_ALU),
         .EN_REG_MEM(EN_REG_MEM),
-        .is_immediate(is_immediate)
+        .is_immediate(is_immediate),
+        .block_pipe_data_cache(block_pipe_data_cache),
+        .block_pipe_instr_cache(block_pipe_instr_cache)
     );
 
     alu_stage alu_state(
@@ -146,6 +173,7 @@ module core(
     mem_stage mem_state(
         .clk(clk),
         .reset(reset),
+        .flush(flush),
         .WB_EN_INIT(WB_EN_TO_MEM), 
         .MEM_R_EN_INIT(MEM_R_EN_TO_MEM),
         .MEM_W_EN_INIT(MEM_W_EN_TO_MEM),
@@ -163,7 +191,16 @@ module core(
         .regD (regD_to_wb),
         .BRANCH (BRANCH_TO_FETCH),
         .PCNEXT (PCNEXT_TO_FETCH),
-        .EN_REG (EN_REG_MEM)
+        .EN_REG (EN_REG_MEM),
+        .data_from_mem(data_to_cache),
+        .read_ready_from_mem(read_ready_for_dcache),
+        .written_data_ack_from_mem(written_data_ack),
+        .reqD_mem(reqD_cache),
+        .reqAddrD_mem(reqAddrD_mem),
+        .data_to_mem(data_to_mem),
+        .reqD_cache_write(reqD_cache_write),
+        .reqAddrD_write_mem(reqAddrD_write_mem),
+        .reqD_stop(reqD_stop)
     );
 
     writeB_stage writeB_state(
@@ -177,6 +214,22 @@ module core(
         .WriteData(write_data_to_reg),
         .RegD(destination_reg),
         .RegW_en(RegW_en_to_decode)
+    );
+
+    memory_controller memory_controller(
+        .clk(clk), 
+        .reset(reset), 
+        .reqI_cache (reqI_cache),
+        .reqD_cache (reqD_cache),
+        .reqD_cache_write ( reqD_cache_write),
+        .reqAddrD_mem ( reqAddrD_mem),
+        .reqAddrI_mem ( reqAddrI_mem),
+        .data_from_cache ( data_to_mem),
+        .data_to_cache (data_to_cache),
+        .read_ready_for_icache (read_ready_for_icache),
+        .read_ready_for_dcache(read_ready_for_dcache),
+        .written_data_ack (written_data_ack),
+        .reqAddrD_write_mem(reqAddrD_write_mem)
     );
 
 endmodule
