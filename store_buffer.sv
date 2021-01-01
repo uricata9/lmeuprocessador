@@ -10,7 +10,8 @@ module store_buffer (
     output reg [63:0] data_to_cache,
     output reg sending_data_to_cache,
     output reg storeBuffer_full,
-    output reg exists_address);
+    output reg exists_address,
+    input cache_hit);
 
 
     reg [63:0] storeBuffer [0:3];
@@ -19,15 +20,16 @@ module store_buffer (
     wire pos_0, pos_1,pos_2,pos_3;
 
     assign pos_0 = storeBuffer[0][63:32] & address & storeBuffer_valid[0];
-    assign pos_1 = storeBuffer[0][63:32] & address & storeBuffer_valid[1];
-    assign pos_2 = storeBuffer[0][63:32] & address & storeBuffer_valid[2];
-    assign pos_3 = storeBuffer[0][63:32] & address & storeBuffer_valid[3];
+    assign pos_1 = storeBuffer[1][63:32] & address & storeBuffer_valid[1];
+    assign pos_2 = storeBuffer[2][63:32] & address & storeBuffer_valid[2];
+    assign pos_3 = storeBuffer[3][63:32] & address & storeBuffer_valid[3];
 
     assign exists_address = pos_0 | pos_1 | pos_2 | pos_3;
     int valid;
+
     always @ (posedge clk) begin
 
-        if (reset == 1'b1 ) begin
+        if (reset == 1'b1 || flush == 1'b1) begin
             for (int k = 0; k < 4; k++) begin         
                 storeBuffer[k] = 64'b0;
                 storeBuffer_valid[k] = 1'b0;
@@ -38,25 +40,33 @@ module store_buffer (
             
         end
         
-        if (mem_read == 1'b1) begin
+        if (mem_read == 1'b1 && cache_ready_to_catch == 1'b0) begin
             hit_storeBuffer = 1'b0;
-            for (int k = 0; k < 4; k++) begin
+            valid = 1;
+            for (int k = 0; k < 4 && valid == 1; k++) begin
                 if (storeBuffer_valid[k] == 1'b1 && storeBuffer[k][63:32] == address) begin
                     data_read = storeBuffer[k][31:0];
                     hit_storeBuffer = 1'b1;
+                    valid = 0;
                 end
             end
         end
 
-        if (mem_write == 1'b1) begin
-            for (int k = 0; k < 4; k++) begin
+        if (mem_write == 1'b1 && cache_ready_to_catch == 1'b0) begin
+            hit_storeBuffer = 1'b0;
+            valid = 1;
+            for (int k = 0; k < 4 && valid == 1; k++) begin
                 if (storeBuffer_valid[k] == 1'b1 && storeBuffer[k][63:32] == address) begin
                     storeBuffer[k][31:0] = writedata;
                     hit_storeBuffer = 1'b1;
+                    valid = 0;
                 end
-                if (storeBuffer_valid[k] == 1'b0) begin
+                if (storeBuffer_valid[k] == 1'b0 && cache_hit == 1'b1) begin
                     storeBuffer[k][31:0] = writedata;
+                    storeBuffer[k][63:32] = address;
                     hit_storeBuffer = 1'b0;
+                    storeBuffer_valid[k] = 1'b1;
+                    valid = 0;
                 end
             end
         end
@@ -87,6 +97,7 @@ module store_buffer (
         if (storeBuffer_valid[3] == 1'b1) begin
             storeBuffer_full = 1'b1;
         end
+
         else begin
             storeBuffer_full = 1'b0;
         end
