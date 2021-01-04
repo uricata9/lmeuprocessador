@@ -6,6 +6,7 @@ module decode_stage(
     input [4:0] registerD,
     input [31:0]registerD_data,
     input RegW_en,
+    input RegW_en_System,
     input EN_REG,
     input block_pipe_data_cache,
     input block_pipe_instr_cache,
@@ -28,6 +29,7 @@ module decode_stage(
     wire [31:0] instruction_internal,lower_half_instruction_internal;
     wire [31:0] PC_internal,PCnext_internal;
     wire [31:0] regAdata_internal,regBdata_internal;
+    wire [31:0] regAdata_internalSystem,regBdata_internalSystem;
     wire [4:0] regD_reg_internal, regD_imme_internal;
     wire ALU_REG_DEST_INT, IS_BRANCH_INT;
     wire MEM_R_EN_INT, MEM_W_EN_INT, MEM_TO_REG_INT, WB_EN_INT;
@@ -69,7 +71,10 @@ module decode_stage(
         .block_pipe_instr_cache(block_pipe_instr_cache),
         .block_pipe_data_cache(block_pipe_data_cache),
         .inject_nop(inject_nop),
-        .injecting_nop(injecting_nop)
+        .injecting_nop(injecting_nop),
+        .regASystem(regASystem),
+        .regDSystem(regDSystem),
+        .RegW_en_System(RegW_en_System)
     );
 
 
@@ -82,6 +87,17 @@ module decode_stage(
         .RegWriteEn(RegW_en),
         .regA_data(regAdata_internal),
         .regB_data(regBdata_internal)
+    );
+
+    RegFileSystem RegFileSystem(
+        .clk(clk),
+        .regA(regA_int),
+        .regB(regB_int),
+        .regD(regD_int),
+        .data_to_w(registerD_data),
+        .RegWriteEn(RegW_en_System),
+        .regA_data(regAdata_internalSystem),
+        .regB_data(regBdata_internalSystem)
     );
 
     mux2Data nop_injection(
