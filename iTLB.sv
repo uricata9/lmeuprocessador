@@ -1,6 +1,6 @@
 module iTLB(    
     input reset, clk, flush,
-    input [31:0] VirtualAddress,
+    input [31:0] Address,
     input supervisor_mode,
     input tlb_write,
     input [19:0] reg_logic_page,
@@ -21,8 +21,8 @@ module iTLB(
 
     always @ (posedge clk) begin
         
-        page_tag = VirtualAddress [31:12];
-        page_offset =  VirtualAddress [11:0];
+        page_tag = Address [31:12];
+        page_offset =  Address [11:0];
 
         if (reset || flush) begin
             for (i=0; i <=4; i++ ) begin

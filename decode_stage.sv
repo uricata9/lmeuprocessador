@@ -24,7 +24,8 @@ module decode_stage(
     output reg MEM_TO_REG,
     output reg [1:0] ALU_OP,
     output reg EN_REG_FETCH, EN_REG_DECODE, EN_REG_ALU, EN_REG_MEM,
-    output reg is_immediate    );
+    output reg is_immediate,
+    output reg TLB_WRITE    );
     
     wire [31:0] instruction_internal,lower_half_instruction_internal;
     wire [31:0] PC_internal,PCnext_internal;
@@ -74,7 +75,8 @@ module decode_stage(
         .injecting_nop(injecting_nop),
         .regASystem(regASystem),
         .regDSystem(regDSystem),
-        .RegW_en_System(RegW_en_System)
+        .RegW_en_System(RegW_en_System),
+        .TLB_WRITE(TLB_WRITE)
     );
 
 

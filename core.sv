@@ -78,6 +78,10 @@ module core(
 
     assign block_pipe_instr_cache = reqI_cache;
 
+    //TLB
+
+    wire TLB_WRITE_TO_ALU, TLB_WRITE_TO_MEM;
+
     fetch_stage fetch_state(
         .PCbranch(PCNEXT_TO_FETCH),
         .clk(clk),
@@ -92,7 +96,8 @@ module core(
         .written_data_ack_from_mem(written_data_ack),
         .reqI_mem(reqI_cache),
         .reqAddrI_mem(reqAddrI_mem),
-        .instr_from_mem(data_to_cache)
+        .instr_from_mem(data_to_cache),
+        .TLB_WRITE_INIT(TLB_WRITE_TO_MEM)
     );
 
     decode_stage decode_state(
@@ -127,7 +132,8 @@ module core(
         .EN_REG_MEM(EN_REG_MEM),
         .is_immediate(is_immediate),
         .block_pipe_data_cache(block_pipe_data_cache),
-        .block_pipe_instr_cache(block_pipe_instr_cache)
+        .block_pipe_instr_cache(block_pipe_instr_cache),
+        .TLB_WRITE(TLB_WRITE_TO_ALU),
     );
 
     alu_stage alu_state(
@@ -166,7 +172,9 @@ module core(
         .MEM_TO_REG( MEM_TO_REG_TO_MEM),
         .PCNEXT(PC_TO_MEM),
         .regD ( regD_to_mem),
-        .is_BRANCH(is_BRANCH_TO_MEM)
+        .is_BRANCH(is_BRANCH_TO_MEM),
+        .TLB_WRITE_INIT(TLB_WRITE_TO_ALU)
+        .TLB_WRITE(TLB_WRITE_TO_MEM)
         
     );
 
@@ -200,7 +208,8 @@ module core(
         .data_to_mem(data_to_mem),
         .reqD_cache_write(reqD_cache_write),
         .reqAddrD_write_mem(reqAddrD_write_mem),
-        .reqD_stop(reqD_stop)
+        .reqD_stop(reqD_stop),
+        .TLB_WRITE_INIT(TLB_WRITE_TO_MEM)
     );
 
     writeB_stage writeB_state(

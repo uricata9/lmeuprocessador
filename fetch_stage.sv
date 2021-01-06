@@ -42,6 +42,18 @@ module fetch_stage(
         .reqAddrI_mem(reqAddrI_mem)
     );
 
+    iTLB iTLB(
+        .reset(reset), 
+        .clk(clk),
+        .flush(flush),
+        .VirtualAddress,
+    input supervisor_mode,
+    input tlb_write,
+    input [19:0] reg_logic_page,
+    input [7:0] reg_physical_page,
+    output reg [19:0] PhysicalAddress,
+    output reg tlb_miss
+    );
 
     //STAGE REGISTER 
     always @ (posedge clk) begin

@@ -23,7 +23,9 @@ module alu_stage(
     output reg WB_EN, MEM_R_EN, MEM_W_EN,
     output reg [31:0] PCNEXT,
     output reg is_BRANCH,
-    output reg [4:0] regD
+    output reg [4:0] regD,
+    output reg TLB_WRITE,
+    input TLB_WRITE_INIT
     );
 
     wire [31:0] unused_data;

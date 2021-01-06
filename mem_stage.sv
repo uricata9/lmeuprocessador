@@ -22,7 +22,9 @@ module mem_stage(
     output reg [127:0] data_to_mem,
     output reg reqD_cache_write,
     output reg [25:0] reqAddrD_write_mem,
-    output reg reqD_stop    
+    output reg reqD_stop,
+    output reg TLB_WRITE,
+    input TLB_WRITE_INIT 
 );
 
     wire [31:0] read_data_mem_intern;

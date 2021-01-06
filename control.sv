@@ -15,7 +15,8 @@ module control (
     output reg EN_REG_FETCH, EN_REG_DECODE, EN_REG_ALU, EN_REG_MEM,
     output reg is_immediate,
     output reg [31:0] inject_nop,
-    output reg injecting_nop
+    output reg injecting_nop,
+    output reg TLB_WRITE
     );
 
     // Reg to Reg           //Reg-Immediate     //Branch            //Jump
@@ -79,7 +80,11 @@ module control (
                 regD <= instruction[15:11];
                 regB <= instruction[20:16];
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             6'b000001: begin
                 WB_EN <= 0;
@@ -92,7 +97,11 @@ module control (
                 regD <= instruction[15:11];
                 regB <= instruction[20:16];
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             6'b0000010: begin
                 WB_EN <= 1;
@@ -105,7 +114,11 @@ module control (
                 regD <= instruction[20:16];
                 regB <= 6'b000000;
                 is_immediate  <= 1;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             //Load
             6'b000011: begin
@@ -119,7 +132,11 @@ module control (
                 regD <= instruction[20:16];
                 regB <= 6'b000000;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             6'b000100: begin
                 WB_EN <= 1;
@@ -132,7 +149,11 @@ module control (
                 regD <= instruction[20:16];
                 regB <= 6'b000000;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             //Store
             6'b000101: begin
@@ -146,7 +167,11 @@ module control (
                 regB <= instruction[20:16];
                 regD <= 6'b000000;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             6'b000110: begin
                 WB_EN <= 0;
@@ -159,7 +184,11 @@ module control (
                 regB <= instruction[20:16];
                 regD <= 6'b000000;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             //Move
             6'b000111: begin
@@ -173,7 +202,11 @@ module control (
                 regD <= instruction[20:16];
                 regB <= 6'b000000;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
                 
             6'b001000: begin
@@ -187,7 +220,11 @@ module control (
                 regD <= instruction[20:16];
                 regB <= 6'b000000;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             6'b001001: begin
                 WB_EN <= 1;
@@ -200,7 +237,11 @@ module control (
                 regD <= instruction[20:16];
                 regB <= 6'b000000;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+
             end
             //Branches      
             6'b001010: begin
@@ -214,7 +255,11 @@ module control (
                 regD <= 6'b000000;
                 regB <= instruction[20:16];
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             6'b001011: begin
                 WB_EN <= 0;
@@ -227,7 +272,11 @@ module control (
                 regD <= 6'b000000;
                 regB <= instruction[20:16];
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             //Float
             6'b001100: begin
@@ -239,7 +288,11 @@ module control (
                 MEM_TO_REG = 0;
                 ALU_OP = 2'b10;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             6'b001101: begin
                 WB_EN <= 1;
@@ -250,7 +303,11 @@ module control (
                 MEM_TO_REG <=0;
                 ALU_OP <= 2'b10;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             6'b001110: begin
                 WB_EN <= 1;
@@ -261,8 +318,51 @@ module control (
                 MEM_TO_REG <=0;
                 ALU_OP <= 2'b10;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
+            
+            6'b100000: begin //tlbwrite
+                WB_EN <= 0;
+                ALU_REG_DEST <= 0;
+                is_branch <= 0;
+                MEM_R_EN <= 0;
+                MEM_W_EN <=0;
+                MEM_TO_REG <=0;
+                ALU_OP <= 2'b00;
+                is_immediate  <= 0;
+                regD <= instruction[20:16];
+                regB <= 6'b000000;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 1;
+            end
+
+            6'b100001: begin //iret
+            
+            end
+
+            6'b101000: begin //mvcontrol
+                WB_EN <= 1;
+                ALU_REG_DEST <= 1;
+                is_branch <= 0;
+                MEM_R_EN <= 0;
+                MEM_W_EN <=0;
+                MEM_TO_REG <=0;
+                ALU_OP <= 2'b00;
+                is_immediate  <= 0;
+                regD <= instruction[20:16];
+                regB <= 6'b000000;
+                regASystem <= 1'b1;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+            end
+
             default: begin
                 WB_EN <= 0;
                 ALU_REG_DEST <= 0;
@@ -272,7 +372,12 @@ module control (
                 MEM_TO_REG <=0;
                 ALU_OP <= 2'b10;
                 is_immediate  <= 0;
-                RegFileSystem <= 0;
+                regASystem <= 1'b0;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
+                
             end
             //Advanced
             //5'b10000: begin
