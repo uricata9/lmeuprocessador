@@ -42,10 +42,9 @@ module memory_controller (
             count_mem_received = 0;
             count_mem_response = 0;
         end
-        #10ps
         write_to_mem=0;
         written_data_ack=0;
-        if (( reqI_cache == 1'b1 || reqD_cache == 1'b1) && recived_mem_access != 1'b1 && attending_mem_access != 1'b1 ) begin
+        if (( reqI_cache == 1'b1 || reqD_cache == 1'b1) && recived_mem_access != 1'b1 && attending_mem_access != 1'b1 && read_ready_for_icache == 1'b0 && read_ready_for_dcache == 1'b0 ) begin
             recived_mem_access = 1'b1;
 
             if (reqD_cache == 1'b1) begin

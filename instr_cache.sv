@@ -7,7 +7,8 @@ module instr_cache (
     input read_ready_from_mem,
     input written_data_ack,
     output reg reqI_mem,
-    output reg [25:0] reqAddrI_mem);
+    output reg [25:0] reqAddrI_mem,
+    output reg cache_hit);
 
     reg [127:0] dataCache [0:3];
     reg [25:0] dataTag [0:3];
@@ -20,7 +21,6 @@ module instr_cache (
     reg pending_req;
     reg ready_next;
     wire [31:0] next_instruction;
-    reg cache_hit;
 
     assign addr_byte = address[3:0];
     assign    addr_index = address[5:4];
@@ -29,7 +29,7 @@ module instr_cache (
     integer row;
     always @ (posedge clk) begin
     
-         
+        
         if (reset == 1'b1 || flush == 1'b1) begin
             for (int k = 0; k < 4; k++) begin         
                 cache_hit = 1'b0;
@@ -37,6 +37,7 @@ module instr_cache (
                 pending_req = 1'b0;
                 dataValid[k] = 0;
                 reqI_mem = 1'b0;
+                readdata = 32'b0;
             end
         end
 
