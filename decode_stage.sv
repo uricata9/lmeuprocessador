@@ -25,7 +25,20 @@ module decode_stage(
     output reg [1:0] ALU_OP,
     output reg EN_REG_FETCH, EN_REG_DECODE, EN_REG_ALU, EN_REG_MEM,
     output reg is_immediate,
-    output reg TLB_WRITE    );
+    output reg TLB_WRITE,
+    output reg TLB_MISS,
+    input [31:0] PC_INIT,
+    output reg [31:0] PC_TO_REG,
+    input last_stage_nop,
+    output reg injected_nop,
+    output reg injecting_nop_mem,
+    input TLB_MISS_TRAP,
+    input TLB_MISS_INST,
+    input [31:0] TLB_PC_REG,
+    input [31:0] TLB_ADDR_REG,
+    output supervisor_mode_fetch,
+    output reg supervisor_mode,
+    output reg WB_SYS_EN   );
     
     wire [31:0] instruction_internal,lower_half_instruction_internal;
     wire [31:0] PC_internal,PCnext_internal;
@@ -41,8 +54,9 @@ module decode_stage(
     wire is_immediate_int;
 
     wire [31:0] inject_nop;
-    wire injecting_nop;
-    
+    wire IRET_INT;
+    wire injecting_nop, injecting_nop_mem_int, supervisor_mode_int;
+    wire RegW_en_System_out;
     
     assign EN_REG_FETCH = EN_REG_FETCH_INT;
     assign EN_REG_DECODE = EN_REG_DECODE_INT;
@@ -73,10 +87,15 @@ module decode_stage(
         .block_pipe_data_cache(block_pipe_data_cache),
         .inject_nop(inject_nop),
         .injecting_nop(injecting_nop),
+        .injecting_nop_mem(injecting_nop_mem_int),
         .regASystem(regASystem),
         .regDSystem(regDSystem),
-        .RegW_en_System(RegW_en_System),
-        .TLB_WRITE(TLB_WRITE)
+        .RegW_en_System(RegW_en_System_out),
+        .TLB_WRITE(TLB_WRITE),
+        .TLB_MISS_MEM(TLB_MISS_TRAP),
+        .last_stage_nop(last_stage_nop),
+        .IRET(IRET_INT),
+        .TLB_MISS_INSTR(TLB_MISS_INST)
     );
 
 
@@ -99,7 +118,12 @@ module decode_stage(
         .data_to_w(registerD_data),
         .RegWriteEn(RegW_en_System),
         .regA_data(regAdata_internalSystem),
-        .regB_data(regBdata_internalSystem)
+        .regB_data(regBdata_internalSystem),
+        .TLB_MISS(TLB_MISS_TRAP),
+        .TLB_PC_REG(TLB_PC_REG),
+        .TLB_ADDR_REG(TLB_ADDR_REG),
+        .supervisor_mode(supervisor_mode_int),
+        .IRET(IRET_INT)
     );
 
     mux2Data nop_injection(
@@ -114,6 +138,7 @@ module decode_stage(
     assign regD_reg_internal = instruction_internal[20:16];
     assign regD_imme_internal = instruction_internal[15:11];
 
+    assign supervisor_mode_fetch = supervisor_mode_int;
 
     //STAGE REGISTER 
     always @ (posedge clk) begin
@@ -180,7 +205,14 @@ module decode_stage(
                 regB <= regB_int;
                 ALU_OP <= ALU_OP_INT;
                 is_immediate <= is_immediate_int;
+                injected_nop <=injecting_nop;
+                TLB_MISS <= TLB_MISS_INST;
+                PC_TO_REG <= PC_INIT;
+                injecting_nop_mem <= injecting_nop_mem_int;
+                supervisor_mode <= supervisor_mode_int;
+                WB_SYS_EN <=RegW_en_System_out;
             end
+
         end
     end
 

@@ -23,21 +23,42 @@ module mem_stage(
     output reg reqD_cache_write,
     output reg [25:0] reqAddrD_write_mem,
     output reg reqD_stop,
-    output reg TLB_WRITE,
-    input TLB_WRITE_INIT 
+    input TLB_WRITE_INIT,
+    input injected_nop_init,
+    input injecting_nop_mem,
+    output reg injected_nop,
+    input supervisor_mode,
+    input TLB_MISS_INIT,
+    output reg TLB_MISS_M,
+    output reg TLB_MISS,
+    input [31:0]  PC_INIT,
+    output reg [31:0]  PC_TO_REG,
+    output reg [31:0]  ADDRESS_TO_REG,
+    output reg [31:0] logic_page_from_trad_ITLB,
+    output reg [19:0] pyshical_page_from_trad_ITLB,
+    input WB_SYS_EN_INIT,
+    output reg WB_SYS_EN
 );
 
     wire [31:0] read_data_mem_intern;
+    wire TLB_MIS_MEM, MEM_R_EN_INT, MEM_W_EN_INT,TLB_MISS_MEM;
+    wire [19:0] PhysicalAddress_tlb;
     assign BRANCH = is_BRANCH & zero;
+
     //assign read_data_mem_intern=read_data_mem;
+
+    assign inject_nop = injected_nop_init | injecting_nop_mem;
+
+    assign MEM_R_EN_INT = MEM_R_EN_INIT & !inject_nop;
+    assign MEM_R_EN_INT = MEM_W_EN_INIT & !inject_nop;
 
     data_cache data_cache(
         .clk(clk), 
         .reset(reset),
         .flush(flush), 
-        .mem_read(MEM_R_EN_INIT),
-        .mem_write(MEM_W_EN_INIT), 
-        .address(regData_address), 
+        .mem_read(MEM_R_EN_INT),
+        .mem_write(MEM_W_EN_INT), 
+        .address({12'b0,PhysicalAddress_tlb}), 
         .writedata(regBdata_write_data), 
         .readdata(read_data_mem_intern),
 
@@ -50,6 +71,20 @@ module mem_stage(
         .reqD_cache_write ( reqD_cache_write),
         .data_to_mem ( data_to_mem),
         .reqAddrD_write_mem(reqAddrD_write_mem)
+    );
+
+    i_d_TLB dTLB(
+        .reset(reset), 
+        .clk(clk),
+        .flush(flush),
+        .mem_read(EN_REG),
+        .Address(regData_address),
+        .tlb_write(TLB_WRITE_INIT),
+        .reg_logic_page(alu_result),
+        .reg_physical_page(regBdata_write_data[19:0]),
+        .PhysicalAddress(PhysicalAddress_tlb),
+        .supervisor_mode(supervisor_mode),
+        .tlb_miss(TLB_MISS_MEM)
     );
 
     /*test_dataMem test_data_mem(
@@ -77,6 +112,13 @@ module mem_stage(
             read_data_mem <= read_data_mem_intern;
             PCNEXT <= PCNEXT_INIT;
             regD <= regD_init;
+            TLB_MISS_M <= TLB_MISS_INIT | TLB_MIS_MEM ;
+            PC_TO_REG <= PC_INIT;
+            ADDRESS_TO_REG <=regData_address;
+            logic_page_from_trad_ITLB <= alu_result;
+            pyshical_page_from_trad_ITLB <= regBdata_write_data[19:0];
+            TLB_MISS <= TLB_MISS_MEM;
+            WB_SYS_EN <= WB_SYS_EN_INIT;
         end
     end
 

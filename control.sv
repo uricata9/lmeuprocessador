@@ -16,7 +16,16 @@ module control (
     output reg is_immediate,
     output reg [31:0] inject_nop,
     output reg injecting_nop,
-    output reg TLB_WRITE
+    output reg injecting_nop_mem,
+    output reg TLB_WRITE,
+    input TLB_MISS_MEM,
+    input TLB_MISS_INSTR,
+    input last_stage_nop,
+    output reg regASystem,
+    output reg regDSystem,
+    output reg RegW_en_System,
+    output reg IRET
+
     );
 
     // Reg to Reg           //Reg-Immediate     //Branch            //Jump
@@ -46,11 +55,11 @@ module control (
     loadf           001101
     storef          001110
     tlbwrite        100000
-    iret            100001
+    IRET            100001_00001
     mvcontrol       101000
 
 
-
+    
 
 
     */
@@ -62,11 +71,16 @@ module control (
     assign regA = instruction [25:21];
 
     reg [1:0] ALU_OP_internal;
-
+    reg recived_TLB_MISS;
+    reg ready_for_TLB_MISS;
     //wire [4:0] regD,regB;
 
     always @ ( * ) begin 
+        
+        if (reset)
+            recived_TLB_MISS = 1'b0;
 
+        ready_for_TLB_MISS <= last_stage_nop;
         FUNCTION <= FUNCTION_INT;
         case({FUNCTION_INT})
             6'b000000: begin
@@ -84,7 +98,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             6'b000001: begin
                 WB_EN <= 0;
@@ -101,9 +115,9 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
-            6'b0000010: begin
+            6'b000010: begin
                 WB_EN <= 1;
                 ALU_REG_DEST <= 0;
                 is_branch <= 0;
@@ -118,7 +132,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             //Load
             6'b000011: begin
@@ -136,7 +150,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             6'b000100: begin
                 WB_EN <= 1;
@@ -153,7 +167,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             //Store
             6'b000101: begin
@@ -171,7 +185,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             6'b000110: begin
                 WB_EN <= 0;
@@ -188,7 +202,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             //Move
             6'b000111: begin
@@ -206,7 +220,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
                 
             6'b001000: begin
@@ -224,7 +238,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             6'b001001: begin
                 WB_EN <= 1;
@@ -241,7 +255,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-
+                IRET <= 0;
             end
             //Branches      
             6'b001010: begin
@@ -259,7 +273,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             6'b001011: begin
                 WB_EN <= 0;
@@ -276,7 +290,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             //Float
             6'b001100: begin
@@ -292,7 +306,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             6'b001101: begin
                 WB_EN <= 1;
@@ -307,7 +321,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
-                
+                IRET <= 0;
             end
             6'b001110: begin
                 WB_EN <= 1;
@@ -322,6 +336,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
+                IRET <= 0;
                 
             end
             
@@ -334,16 +349,31 @@ module control (
                 MEM_TO_REG <=0;
                 ALU_OP <= 2'b00;
                 is_immediate  <= 0;
-                regD <= instruction[20:16];
-                regB <= 6'b000000;
+                regD <= 5'b0;
+                regB <= instruction[20:16];
                 regASystem <= 1'b0;
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 1;
+                IRET <= 0;
             end
 
-            6'b100001: begin //iret
-            
+            6'b100001: begin //IRET
+                IRET <= 1;
+                WB_EN <= 0;
+                ALU_REG_DEST <= 1;
+                is_branch <= 1;
+                MEM_R_EN <= 0;
+                MEM_W_EN <= 0;
+                MEM_TO_REG <= 0;
+                ALU_OP <= 2'b01;
+                regD <= 6'b000000;
+                regB <= instruction[20:16];
+                is_immediate  <= 0;
+                regASystem <= 1'b1;
+                regDSystem <= 1'b0;
+                RegW_en_System <= 0;
+                TLB_WRITE <= 0;
             end
 
             6'b101000: begin //mvcontrol
@@ -361,6 +391,7 @@ module control (
                 regDSystem <= 1'b0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
+                IRET <= 0;
             end
 
             default: begin
@@ -377,6 +408,7 @@ module control (
                 RegW_en_System <= 0;
                 RegW_en_System <= 0;
                 TLB_WRITE <= 0;
+                IRET <= 0;
                 
             end
             //Advanced
@@ -384,7 +416,42 @@ module control (
             //5'b10001: begin
         endcase
 
-        if (block_pipe_instr_cache == 1'b1) begin
+        if (TLB_MISS_INSTR == 1'b1 && recived_TLB_MISS == 1'b0) begin
+            recived_TLB_MISS = 1'b1;
+            EN_REG_FETCH = 0;
+            EN_REG_DECODE = 1;
+            EN_REG_ALU = 1;
+            EN_REG_MEM = 1;
+            injecting_nop = 1'b1;
+        end
+        if (TLB_MISS_INSTR == 1'b1 && ready_for_TLB_MISS == 1'b1) begin
+            EN_REG_FETCH = 1;
+            EN_REG_DECODE = 1;
+            EN_REG_ALU = 1;
+            EN_REG_MEM = 1;
+            injecting_nop = 1'b0;
+        end
+
+        if (TLB_MISS_MEM== 1'b1 && recived_TLB_MISS == 1'b0) begin
+            recived_TLB_MISS = 1'b1;
+            EN_REG_FETCH = 0;
+            EN_REG_DECODE = 0;
+            EN_REG_ALU = 0;
+            EN_REG_MEM = 1;
+            injecting_nop_mem = 1'b1;
+        end
+        if (TLB_MISS_MEM== 1'b1 && ready_for_TLB_MISS == 1'b1) begin
+            EN_REG_FETCH = 1;
+            EN_REG_DECODE = 1;
+            EN_REG_ALU = 1;
+            EN_REG_MEM = 1;
+            injecting_nop_mem = 1'b0;
+        end
+
+        if (TLB_MISS_INSTR == 1'b0 && TLB_MISS_MEM == 1'b0) begin
+            recived_TLB_MISS = 1'b0;
+        end
+        if (block_pipe_instr_cache == 1'b1 ) begin
             EN_REG_FETCH = 0;
             EN_REG_DECODE = 1;
             EN_REG_ALU = 1;
@@ -396,7 +463,7 @@ module control (
             injecting_nop = 1'b0;
         end
 
-        if (block_pipe_data_cache  == 1'b1) begin
+        if (block_pipe_data_cache  == 1'b1 ) begin
             EN_REG_FETCH = 0;
             EN_REG_DECODE = 0;
             EN_REG_ALU = 0;

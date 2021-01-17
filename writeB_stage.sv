@@ -6,7 +6,9 @@ module writeB_stage(
     input MemToReg,
     output [31:0] WriteData,
     output [4:0] RegD,
-    output RegW_en);
+    output RegW_en,
+    output RegW_en_System,
+    input WB_SYS_EN_INIT);
 
     wire [31:0] WriteData_internal;
 
@@ -19,6 +21,6 @@ module writeB_stage(
     assign RegD = RegD_init;
     assign WriteData = WriteData_internal;
     assign RegW_en = RegW_en_init;
-
+    assign RegW_en_System = WB_SYS_EN_INIT;
     
 endmodule 

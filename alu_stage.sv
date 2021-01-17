@@ -25,7 +25,17 @@ module alu_stage(
     output reg is_BRANCH,
     output reg [4:0] regD,
     output reg TLB_WRITE,
-    input TLB_WRITE_INIT
+    input TLB_WRITE_INIT,
+    input injected_nop_init,
+    output reg injected_nop,
+    input TLB_MISS_INT,
+    output reg TLB_MISS,
+    input [31:0] PC_INIT,
+    output reg [31:0] PC_TO_REG,
+    input supervisor_mode_init,
+    output reg supervisor_mode,
+    input WB_SYS_EN_INIT,
+    output reg WB_SYS_EN
     );
 
     wire [31:0] unused_data;
@@ -134,6 +144,10 @@ module alu_stage(
             regD <= regD_internal;
             is_BRANCH <= is_BRANCH_init;
             MEM_TO_REG <= MEM_TO_REG_INIT;
+            TLB_MISS <= TLB_MISS_INT;
+            PC_TO_REG <= PC_INIT;
+            supervisor_mode <= supervisor_mode_init;
+            WB_SYS_EN <= WB_SYS_EN_INIT;
         end
     end
 

@@ -81,7 +81,15 @@ module core(
     //TLB
 
     wire TLB_WRITE_TO_ALU, TLB_WRITE_TO_MEM;
+    wire supervisor_mode_fetch, supervisor_mode_to_alu, supervisor_mode_to_mem;
+    wire last_stage_nop, NOP_TO_ALU, NOP_TO_MEM, injecting_nop_mem;
 
+    wire TLB_MISS_TO_DEC_FROM_FETCH, TLB_MISS_TO_DEC_FROM_MEM, TLB_MISS_TO_MEM, TLB_MISS_TO_ALU, TLB_MISS_TRAP;
+    wire [31:0] TLB_PC_TO_DEC, TLB_PC_TO_ALU, TLB_PC_TO_MEM,TLB_PC_TO_REG, TLB_PC_REG;
+    wire [19:0] pyshical_page_from_trad_ITLB;
+    wire [31:0] logic_page_from_trad_ITLB,TLB_ADDR_REG;
+    wire RegW_en_System_to_decode;
+    wire WB_SYS_EN_TO_WB, WB_SYS_EN_TO_MEM, WB_SYS_EN_TO_ALU;
     fetch_stage fetch_state(
         .PCbranch(PCNEXT_TO_FETCH),
         .clk(clk),
@@ -97,7 +105,13 @@ module core(
         .reqI_mem(reqI_cache),
         .reqAddrI_mem(reqAddrI_mem),
         .instr_from_mem(data_to_cache),
-        .TLB_WRITE_INIT(TLB_WRITE_TO_MEM)
+        .tlb_write(TLB_WRITE_TO_MEM),
+        .TLB_MISS(TLB_MISS_TO_DEC_FROM_FETCH),
+        .PC_TLB(TLB_PC_TO_DEC),
+        .TLB_MISS_MEM(TLB_MISS_TRAP),
+        .supervisor_mode(supervisor_mode_fetch),
+        .logic_page_from_trad(logic_page_from_trad_ITLB),
+        .pyshical_page_from_trad(pyshical_page_from_trad_ITLB)
     );
 
     decode_stage decode_state(
@@ -109,6 +123,7 @@ module core(
         .registerD(destination_reg),
         .registerD_data(write_data_to_reg),
         .RegW_en ( RegW_en_to_decode),
+        .RegW_en_System(RegW_en_System_to_decode),
         .EN_REG ( EN_REG_DECODE),
         .RegAdata(RegAdata_to_alu),
         .RegBdata(RegBdata_to_alu),
@@ -134,6 +149,19 @@ module core(
         .block_pipe_data_cache(block_pipe_data_cache),
         .block_pipe_instr_cache(block_pipe_instr_cache),
         .TLB_WRITE(TLB_WRITE_TO_ALU),
+        .last_stage_nop(last_stage_nop),
+        .injected_nop(NOP_TO_ALU),
+        .TLB_MISS_INST(TLB_MISS_TO_DEC_FROM_FETCH),
+        .TLB_MISS(TLB_MISS_TO_ALU),
+        .PC_INIT(TLB_PC_TO_DEC),
+        .PC_TO_REG(TLB_PC_TO_ALU),
+        .TLB_MISS_TRAP(TLB_MISS_TRAP),
+        .TLB_PC_REG(TLB_PC_REG),
+        .TLB_ADDR_REG(TLB_ADDR_REG),
+        .injecting_nop_mem(injecting_nop_mem),
+        .supervisor_mode(supervisor_mode_to_alu),
+        .supervisor_mode_fetch(supervisor_mode_fetch),
+        .WB_SYS_EN(WB_SYS_EN_TO_ALU)
     );
 
     alu_stage alu_state(
@@ -173,9 +201,18 @@ module core(
         .PCNEXT(PC_TO_MEM),
         .regD ( regD_to_mem),
         .is_BRANCH(is_BRANCH_TO_MEM),
-        .TLB_WRITE_INIT(TLB_WRITE_TO_ALU)
-        .TLB_WRITE(TLB_WRITE_TO_MEM)
-        
+        .TLB_WRITE_INIT(TLB_WRITE_TO_ALU),
+        .TLB_WRITE(TLB_WRITE_TO_MEM),
+        .injected_nop_init(NOP_TO_ALU),
+        .injected_nop(NOP_TO_MEM),
+        .TLB_MISS_INT(TLB_MISS_TO_ALU),
+        .TLB_MISS(TLB_MISS_TO_MEM),
+        .PC_INIT(TLB_PC_TO_ALU),
+        .PC_TO_REG(TLB_PC_TO_MEM),
+        .supervisor_mode_init(supervisor_mode_to_alu),
+        .supervisor_mode(supervisor_mode_to_mem),
+        .WB_SYS_EN_INIT(WB_SYS_EN_TO_ALU),
+        .WB_SYS_EN(WB_SYS_EN_TO_MEM)
     );
 
     mem_stage mem_state(
@@ -209,7 +246,21 @@ module core(
         .reqD_cache_write(reqD_cache_write),
         .reqAddrD_write_mem(reqAddrD_write_mem),
         .reqD_stop(reqD_stop),
-        .TLB_WRITE_INIT(TLB_WRITE_TO_MEM)
+        .TLB_WRITE_INIT(TLB_WRITE_TO_MEM),
+        .TLB_MISS_M(TLB_MISS_M),
+        .injected_nop_init(NOP_TO_MEM),
+        .injected_nop(last_stage_nop),
+        .TLB_MISS_INIT(TLB_MISS_TO_MEM),
+        .TLB_MISS(TLB_MISS_TRAP),
+        .PC_INIT(TLB_PC_TO_MEM),
+        .PC_TO_REG(TLB_PC_TO_REG),
+        .ADDRESS_TO_REG(TLB_ADDR_REG),
+        .injecting_nop_mem(injecting_nop_mem),
+        .supervisor_mode(supervisor_mode_to_mem),
+        .logic_page_from_trad_ITLB(logic_page_from_trad_ITLB),
+        .pyshical_page_from_trad_ITLB(pyshical_page_from_trad_ITLB),
+        .WB_SYS_EN_INIT(WB_SYS_EN_TO_MEM),
+        .WB_SYS_EN(WB_SYS_EN_TO_WB)
     );
 
     writeB_stage writeB_state(
@@ -222,7 +273,9 @@ module core(
         .MemToReg( MEM_TO_REG_TO_WB),
         .WriteData(write_data_to_reg),
         .RegD(destination_reg),
-        .RegW_en(RegW_en_to_decode)
+        .RegW_en(RegW_en_to_decode),
+        .WB_SYS_EN_INIT(WB_SYS_EN_TO_WB),
+        .RegW_en_System(RegW_en_System_to_decode)
     );
 
     memory_controller memory_controller(
