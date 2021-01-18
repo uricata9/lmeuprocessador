@@ -17,7 +17,9 @@ module alu_control (
                 6'b000111: alu_control = 4'b0111; //slt
             endcase
         end
-
+        else if (alu_op == 2'b11) begin
+                alu_control = 4'b1111;
+        end
         else begin
             alu_control = 4'b0010; //ADD
         end

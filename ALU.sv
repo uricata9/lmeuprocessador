@@ -9,6 +9,7 @@ module ALU(input [31:0] regA,regB,input [3:0] aluoperation,output reg [31:0] reg
             4'b0100 : regD = regA ^ regB; // XOR
             4'b0110 : regD = regA - regB; // SUB
             4'b0111 : regD = {31'b0,lt}; //slt
+            4'b1111 : regD = regA;
             //4'b1100 : regD = regA regB; //NOR
             // if you want to add new Alu instructions  add here
         default : regD = regA + regB; // ADD
@@ -25,8 +26,9 @@ module ALU(input [31:0] regA,regB,input [3:0] aluoperation,output reg [31:0] reg
             lt = 1'b1;  
         end
         
-        if (regD==32'd0) zero=1'b1;
+        if (regD==32'b0) zero=1'b1;
         else zero=1'b0;
     end
+
 
 endmodule

@@ -7,7 +7,8 @@ module i_d_TLB(
     input [31:0] reg_logic_page,
     input [19:0] reg_physical_page,
     output reg [19:0] PhysicalAddress,
-    output reg tlb_miss);
+    output reg tlb_miss,
+    output reg fetch);
 
     reg [32:0] page_table [3:0];
     reg [19:0] page_traduction [3:0];
@@ -16,24 +17,29 @@ module i_d_TLB(
     reg [19:0] page_tag;
     reg [11:0] page_offset;
     reg tlb_hit;
-
+    reg ready_next;
     int row_cache;
 
 
-    always @ (posedge clk) begin
+    always @ (negedge clk) begin
         
         page_tag = Address [31:12];
         page_offset =  Address [11:0];
         row_cache = -1; //undefined
-
         if (reset || flush) begin
             for (int i=0; i <=4; i++ ) begin
                 page_table[i] = 20'b0;
                 tlb_miss = 0;
                 valid_page [i] = 0;
+                PhysicalAddress = 32'b0000_0000_0000_0000_0001_0000_0000_0000;
             end
+            fetch = 1'b1;
         end
 
+        if (supervisor_mode)
+           PhysicalAddress = Address[19:0];
+
+        
         else if  (mem_read && !supervisor_mode) begin
             if ( supervisor_mode == 1'b0 && tlb_write == 1'b0) begin
                 tlb_miss=1'b1;
@@ -79,9 +85,15 @@ module i_d_TLB(
                 page_traduction [row_cache] = reg_physical_page;
                 valid_page [row_cache] = 1'b1;
                 tlb_miss = 1'b0;
-
+                fetch = 1'b1;
             end
+            if (tlb_miss == 1'b1)
+                fetch = 1'b0;
+            else if (supervisor_mode == 1'b1)
+                fetch = 1'b1;
         end
+
+
     
     end
 

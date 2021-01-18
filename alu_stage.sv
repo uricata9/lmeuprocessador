@@ -35,7 +35,8 @@ module alu_stage(
     input supervisor_mode_init,
     output reg supervisor_mode,
     input WB_SYS_EN_INIT,
-    output reg WB_SYS_EN
+    output reg WB_SYS_EN,
+    output reg jump_regD
     );
 
     wire [31:0] unused_data;
@@ -149,6 +150,10 @@ module alu_stage(
             supervisor_mode <= supervisor_mode_init;
             WB_SYS_EN <= WB_SYS_EN_INIT;
         end
+        if (alu_control_int == 4'b1111)
+            jump_regD = 1'b1;
+        else 
+            jump_regD = 1'b0;
     end
 
 endmodule

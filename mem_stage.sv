@@ -1,5 +1,6 @@
 module mem_stage(
     input clk, reset,zero, flush,
+    input jump_regD,
     input WB_EN_INIT, MEM_R_EN_INIT, MEM_W_EN_INIT,
     input [31:0] regBdata_write_data,regData_address,
     input [31:0] PCNEXT_INIT,
@@ -18,10 +19,10 @@ module mem_stage(
     input read_ready_from_mem,
     input written_data_ack_from_mem,
     output reg reqD_mem,
-    output reg [25:0] reqAddrD_mem,
+    output reg [19:0] reqAddrD_mem,
     output reg [127:0] data_to_mem,
     output reg reqD_cache_write,
-    output reg [25:0] reqAddrD_write_mem,
+    output reg [19:0] reqAddrD_write_mem,
     output reg reqD_stop,
     input TLB_WRITE_INIT,
     input injected_nop_init,
@@ -43,7 +44,8 @@ module mem_stage(
     wire [31:0] read_data_mem_intern;
     wire TLB_MIS_MEM, MEM_R_EN_INT, MEM_W_EN_INT,TLB_MISS_MEM;
     wire [19:0] PhysicalAddress_tlb;
-    assign BRANCH = is_BRANCH & zero;
+    wire fetch_tlb;
+    
 
     //assign read_data_mem_intern=read_data_mem;
 
@@ -84,7 +86,8 @@ module mem_stage(
         .reg_physical_page(regBdata_write_data[19:0]),
         .PhysicalAddress(PhysicalAddress_tlb),
         .supervisor_mode(supervisor_mode),
-        .tlb_miss(TLB_MISS_MEM)
+        .tlb_miss(TLB_MISS_MEM),
+        .fetch(fetch_tlb)
     );
 
     /*test_dataMem test_data_mem(
@@ -110,7 +113,7 @@ module mem_stage(
             MEM_TO_REG <= MEM_R_EN_INIT;
             alu_result <= regData_address;
             read_data_mem <= read_data_mem_intern;
-            PCNEXT <= PCNEXT_INIT;
+            
             regD <= regD_init;
             TLB_MISS_M <= TLB_MISS_INIT | TLB_MIS_MEM ;
             PC_TO_REG <= PC_INIT;
@@ -119,6 +122,15 @@ module mem_stage(
             pyshical_page_from_trad_ITLB <= regBdata_write_data[19:0];
             TLB_MISS <= TLB_MISS_MEM;
             WB_SYS_EN <= WB_SYS_EN_INIT;
+        end
+
+        if (jump_regD) begin
+            PCNEXT = regData_address;
+            BRANCH = 1'b1;
+        end
+        else begin
+            BRANCH = is_BRANCH & zero;
+            PCNEXT <= PCNEXT_INIT;
         end
     end
 

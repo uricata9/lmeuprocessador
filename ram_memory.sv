@@ -1,6 +1,6 @@
 module ram_memory(    
     input reset, 
-    input [25:0] data_requested,where_to_write,
+    input [19:0] data_requested,where_to_write,
     output reg [127:0] data_returned,
     input [127:0] data_to_write,
     input write_to_mem);
@@ -55,8 +55,8 @@ module ram_memory(
             memory[40] <=  32'b00000000000000000000000000101001;*/
 
             //boot address
-            memory[4096] <=   32'b10000100001000000000000000000000; //iret
-            memory[4097] <=   32'b00000000000000110011000000000010;
+            memory[4097] <=   32'b1000_0100_0010_0000_0000_0000_0000_0000; //iret
+            memory[4096] <=   32'b00000000000000110011000000000010;
             memory[4098] <=   32'b00000000000110001010010100011000;
             memory[4099] <=   32'b00001000000000000000111000001010;
 
@@ -79,7 +79,7 @@ module ram_memory(
         end
         
         else begin
-            shifted_adress = data_requested << 2;
+            shifted_adress = data_requested; //<< 2;
             data_returned = {memory[shifted_adress + 3], memory[shifted_adress + 2], memory[shifted_adress + 1], memory[shifted_adress]};
             if (write_to_mem == 1'b1) begin
                 shifted_adress_write = where_to_write << 2;

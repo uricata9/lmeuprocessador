@@ -7,19 +7,19 @@ module instr_cache (
     input read_ready_from_mem,
     input written_data_ack,
     output reg reqI_mem,
-    output reg [25:0] reqAddrI_mem,
-    output reg cache_hit);
+    output reg [19:0] reqAddrI_mem,
+    output reg cache_hit,
+    output reg fetch);
 
     reg [127:0] dataCache [0:3];
-    reg [25:0] dataTag [0:3];
+    reg [19:0] dataTag [0:3];
     reg dataValid [0:3];
 
     wire [3:0] addr_byte;
     wire [1:0] addr_index;
-    wire [25:0] addr_tag;
+    wire [19:0] addr_tag;
     reg req_valid;
     reg pending_req;
-    reg ready_next;
     wire [31:0] next_instruction;
 
     assign addr_byte = address[3:0];
@@ -27,10 +27,10 @@ module instr_cache (
         
     assign    addr_tag = address[31:6];
     integer row;
-    always @ (posedge clk) begin
+    always @ (negedge clk) begin
     
         
-        if (reset == 1'b1 || flush == 1'b1) begin
+        if (reset == 1'b1 || flush == 1'b1 || $isunknown(address)) begin
             for (int k = 0; k < 4; k++) begin         
                 cache_hit = 1'b0;
                 req_valid = 1'b1;
@@ -39,6 +39,7 @@ module instr_cache (
                 reqI_mem = 1'b0;
                 readdata = 32'b0;
             end
+                fetch= 1'b1;
         end
 
         /*case ({addr_index})
@@ -70,9 +71,8 @@ module instr_cache (
             dataTag [row] = addr_tag;
             pending_req = 1'b0;
             dataValid [row] = 1'b1;
-            ready_next = 1'b1;
+            fetch = 1'b1;
             reqI_mem = 1'b0;
-            
 
                 
         end
@@ -84,7 +84,7 @@ module instr_cache (
         if (!pending_req && req_valid && mem_read) begin
             if (dataTag [row] == addr_tag) begin
                 if (dataValid [row] == 1'b1) begin
-                    readdata = {dataCache [row][addr_byte*8 +: 31]};
+                    readdata = {dataCache [row][addr_byte*8 +: 32]};
                     cache_hit=1'b1;
                 end
             end
@@ -96,9 +96,9 @@ module instr_cache (
             if (cache_hit == 1'b0) begin
         
                 pending_req = 1'b1;
-                reqAddrI_mem = address[31:4];
+                reqAddrI_mem = {address[27:4],4'b0000};
                 reqI_mem = 1'b1;
-                ready_next = 1'b0;
+                fetch = 1'b0;
 
             end
         end

@@ -10,19 +10,19 @@ module data_cache (
     input written_data_ack,
     output reg reqD_mem,
     output reg reqD_stop,
-    output reg [25:0] reqAddrD_mem,
+    output reg [19:0] reqAddrD_mem,
     output reg reqD_cache_write,
     output reg [127:0] data_to_mem,
-    output reg [25:0] reqAddrD_write_mem);
+    output reg [19:0] reqAddrD_write_mem);
 
     reg [127:0] dataCache [0:3];
-    reg [25:0] dataTag [0:3];
+    reg [19:0] dataTag [0:3];
     reg dataValid [0:3];
     reg dataDirty [0:3];
 
     wire [3:0] addr_byte;
     wire [1:0] addr_index;
-    wire [25:0] addr_tag;
+    wire [19:0] addr_tag;
     reg req_valid;
     reg pending_req;
     reg ready_next;
@@ -79,7 +79,7 @@ module data_cache (
     );
 
     int flushing_SB;
-    always @ (posedge clk) begin
+    always @ (negedge clk) begin
     
          
         if (reset == 1'b1 || flush == 1'b1) begin

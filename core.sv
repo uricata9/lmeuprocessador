@@ -63,14 +63,14 @@ module core(
     // fetch - RAM
     wire reqI_cache, read_ready_for_icache, write,written_data_ack;
     wire [127:0] data_to_cache,data_to_mem;
-    wire [25:0] reqAddrI_mem;
+    wire [19:0] reqAddrI_mem;
     // fetch - Decode
 
     // MEM - RAM
 
     wire reqD_cache, reqD_stop,reqD_cache_write;
     wire read_ready_for_dcache;
-    wire [25:0] reqAddrD_mem,reqAddrD_write_mem;
+    wire [19:0] reqAddrD_mem,reqAddrD_write_mem;
 
     wire block_pipe_data_cache, block_pipe_instr_cache;
 
@@ -163,7 +163,7 @@ module core(
         .supervisor_mode_fetch(supervisor_mode_fetch),
         .WB_SYS_EN(WB_SYS_EN_TO_ALU)
     );
-
+     wire jump_regD;
     alu_stage alu_state(
         .clk(clk),
         .reset(reset),
@@ -212,13 +212,15 @@ module core(
         .supervisor_mode_init(supervisor_mode_to_alu),
         .supervisor_mode(supervisor_mode_to_mem),
         .WB_SYS_EN_INIT(WB_SYS_EN_TO_ALU),
-        .WB_SYS_EN(WB_SYS_EN_TO_MEM)
+        .WB_SYS_EN(WB_SYS_EN_TO_MEM),
+        .jump_regD(jump_regD)
     );
-
+   
     mem_stage mem_state(
         .clk(clk),
         .reset(reset),
         .flush(flush),
+        .jump_regD(jump_regD),
         .WB_EN_INIT(WB_EN_TO_MEM), 
         .MEM_R_EN_INIT(MEM_R_EN_TO_MEM),
         .MEM_W_EN_INIT(MEM_W_EN_TO_MEM),

@@ -77,9 +77,18 @@ module control (
 
     always @ ( * ) begin 
         
-        if (reset)
+        if (reset) begin
             recived_TLB_MISS = 1'b0;
+            /*EN_REG_FETCH = 1'b0;
+            EN_REG_DECODE = 1'b0;
+            EN_REG_ALU = 1'b0;
+            EN_REG_MEM = 1'b0;
+            WB_EN = 1'b0;
+            TLB_WRITE = 1'b0;
+            MEM_R_EN = 1'b0;
+            MEM_W_EN = 1'b0;*/
 
+        end
         ready_for_TLB_MISS <= last_stage_nop;
         FUNCTION <= FUNCTION_INT;
         case({FUNCTION_INT})

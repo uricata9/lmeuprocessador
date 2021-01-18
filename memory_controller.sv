@@ -3,9 +3,9 @@ module memory_controller (
     input reqI_cache,
     input reqD_cache,
     input reqD_cache_write,
-    input [25:0] reqAddrD_mem,
-    input [25:0] reqAddrD_write_mem,
-    input [25:0] reqAddrI_mem,
+    input [19:0] reqAddrD_mem,
+    input [19:0] reqAddrD_write_mem,
+    input [19:0] reqAddrI_mem,
     input [127:0] data_from_cache,
     output reg [127:0] data_to_cache,
     output reg read_ready_for_icache,
@@ -19,7 +19,7 @@ module memory_controller (
     
     reg arbitror;
 
-    reg [25:0] data_req_to_mem,where_to_write;
+    reg [19:0] data_req_to_mem,where_to_write;
     reg [127:0] data_req_by_cache;
     reg write_to_mem;
     reg [127:0] data_to_write;

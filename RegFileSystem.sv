@@ -19,7 +19,7 @@ module RegFileSystem (
         for (i=1; i<31; i=i+1) begin
             regfileSystem[i]=0;
 	    end
-        regfileSystem[4] = 32'b0000_0000_0000_0000_0000_0000_0000_0000;
+        regfileSystem[4] = 32'b0000_0000_0000_0000_0000_0000_0000_0001;
     end
   
     always @(posedge clk)begin
