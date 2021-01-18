@@ -28,23 +28,23 @@ module control (
 
 
     /*              31:26
-    aritmetic       00000
-    compare         00001
-    addi            00010 
-    loadb           00011    
-    loadw           00100   
-    storeb          00101
-    storew          00110
-    mvl             00111
-    mvh             01000
-    mvi             01001
-    jal             01010´
-    jump            01011
-    float_op        01100
-    loadf           01101
-    storef          01110
-    tlbwrite        10000
-    iret            10001
+    aritmetic       000000
+    compare         000001
+    addi            000010 
+    loadb           000011    
+    loadw           000100   
+    storeb          000101
+    storew          000110
+    mvl             000111
+    mvh             001000
+    beq             001001
+    jal             001010
+    jump            001011
+    float_op        001100
+    loadf           001101
+    storef          001110
+    tlbwrite        100000
+    iret            000001
 
 
 
