@@ -15,6 +15,7 @@ module alu_control (
                 6'b000100: alu_control = 4'b0100; //XOR
                 6'b000110: alu_control = 4'b0110; //SUB
                 6'b000111: alu_control = 4'b0111; //slt
+                6'b001000: alu_control = 4'b1000; //complt
             endcase
         end
         else if (alu_op == 2'b11) begin

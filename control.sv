@@ -50,6 +50,8 @@ module control (
     mvi             001001
     
     jal             001010´
+    beq             001001
+    jal             001010
     jump            001011
     float_op        001100
     loadf           001101
@@ -57,6 +59,8 @@ module control (
     tlbwrite        100000
     IRET            100001_00001
     mvcontrol       101000
+    iret            000001
+
 
 
     

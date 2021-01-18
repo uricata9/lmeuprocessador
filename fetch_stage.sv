@@ -20,6 +20,8 @@ module fetch_stage(
 
     wire [31:0] PC_internal_plus_4,instruction_internal,PC_address_to_PC_int;
     reg [31:0] PC_TLB_MISS,PC_address_to_PC;
+    wire [31:0] PC_internal_plus_4, PC_internal_plus_4_int,PC_address_to_PC,instruction_internal;
+    wire [31:0] PC_INTERNAL;
     reg cache_hit;
     int count_ready_next_inst;
     wire [19:0] PhysicalAddress_tlb;
@@ -36,11 +38,6 @@ module fetch_stage(
     );
 
     assign PC_internal_plus_4 = PC_INTERNAL +4;
-    /*test_instrMem inst_cache(
-        .rst(reset),
-        .addr(PC_internal_plus_4),
-        .instruction(instruction_internal)
-    );*/
 
     instr_cache instr_cache(
         .clk(clk),
@@ -48,6 +45,7 @@ module fetch_stage(
         .flush(flush), 
         .mem_read(EN_REG),
         .address({12'b0,PhysicalAddress_tlb}), 
+
         .readdata(instruction_internal),
         .data_from_mem(instr_from_mem),
         .read_ready_from_mem(read_ready_from_mem),
@@ -81,6 +79,16 @@ module fetch_stage(
         .regOut(PC_INTERNAL)
     );
 
+    flipflop PC(
+        .clk(clk),
+        .reset(reset),
+        .writeEn(EN_REG & !read_ready_from_mem & cache_hit ),
+        .regIn(PC_address_to_PC),
+        .regOut(PC_INTERNAL)
+    );
+
+    assign instruction = instruction_internal;
+
 
     //STAGE REGISTER 
     always @ (posedge clk) begin
@@ -91,11 +99,11 @@ module fetch_stage(
         end
         else if (EN_REG && !read_ready_from_mem && cache_hit && !TLB_MISS_INT && fetch_tlb && fetch_cache) begin
             PC_TLB <= PC_INTERNAL;
-            PCnext <= PC_internal_plus_4;
+            PCnext <= PC_address_to_PC;
             TLB_MISS = TLB_MISS_INT;
             instruction = instruction_internal;
-        end
-        
+            //count_ready_next_inst <= 1;
+
         /*if (count_ready_next_inst == 0) begin
             count_ready_next_inst = 1;
         end
