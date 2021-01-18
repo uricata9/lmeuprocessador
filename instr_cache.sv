@@ -27,7 +27,7 @@ module instr_cache (
         
     assign    addr_tag = address[31:6];
     integer row;
-    always @ (posedge clk) begin
+    always @ (negedge clk) begin
     
         
         if (reset == 1'b1 || flush == 1'b1) begin

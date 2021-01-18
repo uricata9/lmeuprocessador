@@ -90,7 +90,7 @@ module control (
                 regB <= instruction[20:16];
                 is_immediate  <= 0;
             end
-            6'b0000010: begin
+            6'b000010: begin
                 WB_EN <= 1;
                 ALU_REG_DEST <= 0;
                 is_branch <= 0;

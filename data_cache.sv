@@ -79,7 +79,7 @@ module data_cache (
     );
 
     int flushing_SB;
-    always @ (posedge clk) begin
+    always @ (negedge clk) begin
     
          
         if (reset == 1'b1 || flush == 1'b1) begin

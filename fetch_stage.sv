@@ -12,7 +12,7 @@ module fetch_stage(
     output reg [25:0] reqAddrI_mem);
 
     wire [31:0] PC_internal_plus_4, PC_internal_plus_4_int,PC_address_to_PC,instruction_internal;
-    reg [31:0] PC;
+    wire [31:0] PC_INTERNAL;
     reg cache_hit;
     int count_ready_next_inst;
     mux2Data muxSelectPC(
@@ -22,7 +22,7 @@ module fetch_stage(
         .y(PC_address_to_PC)
     );
 
-    assign PC_internal_plus_4 = PC +4;
+    assign PC_internal_plus_4 = PC_INTERNAL +4;
 
     /*test_instrMem inst_cache(
         .rst(reset),
@@ -35,7 +35,7 @@ module fetch_stage(
         .reset(reset),
         .flush(flush), 
         .mem_read(EN_REG),
-        .address(PC), 
+        .address(PC_INTERNAL), 
         .readdata(instruction_internal),
         .data_from_mem(instr_from_mem),
         .read_ready_from_mem(read_ready_from_mem),
@@ -45,6 +45,14 @@ module fetch_stage(
         .cache_hit(cache_hit)
     );
 
+    flipflop PC(
+        .clk(clk),
+        .reset(reset),
+        .writeEn(EN_REG & !read_ready_from_mem & cache_hit ),
+        .regIn(PC_address_to_PC),
+        .regOut(PC_INTERNAL)
+    );
+
     assign instruction = instruction_internal;
 
     //STAGE REGISTER 
@@ -52,13 +60,11 @@ module fetch_stage(
 
         if (flush || reset) begin
             PCnext <= 0;
-            PC  <= 0;
             //count_ready_next_inst <= 1;
         end
         else if (EN_REG && !read_ready_from_mem) begin
             
-            PC <= PC_address_to_PC;
-            PCnext <= PC_internal_plus_4;
+            PCnext <= PC_address_to_PC;
         end
 
         /*if (count_ready_next_inst == 0) begin
