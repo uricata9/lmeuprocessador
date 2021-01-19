@@ -181,7 +181,7 @@ module data_cache (
             if (cache_hit == 1'b0) begin
                 if (dataDirty[row] == 1'b0) begin
                     pending_req = 1'b1;
-                    reqAddrD_mem = address[31:4];
+                    reqAddrD_mem = address[31:2];
                     reqD_mem = 1'b1;
                     ready_next = 1'b0;
                 end
@@ -190,7 +190,7 @@ module data_cache (
                     //escriure a meme
                     pending_req = 1'b1;
                     data_to_mem = dataCache [row];
-                    reqAddrD_mem = address[31:4];
+                    reqAddrD_mem = address[31:2];
                     reqD_mem = 1'b1;
                     ready_next = 1'b0;
                     reqD_cache_write = 1'b1;
@@ -216,7 +216,7 @@ module data_cache (
             if (cache_hit == 1'b0) begin
                 if (dataDirty[row] == 1'b0) begin
                     pending_req = 1'b1;
-                    reqAddrD_mem = address[31:4];
+                    reqAddrD_mem = address[31:2];
                     reqD_mem = 1'b1;
                     ready_next = 1'b0;
                     reqD_cache_write = 1'b0;
@@ -226,7 +226,7 @@ module data_cache (
                     pending_req = 1'b1;
                     data_to_mem = dataCache [row];
                     reqAddrD_write_mem = {dataTag[row],row,4'b0000};
-                    reqAddrD_mem = address[31:4];
+                    reqAddrD_mem = address[31:2];
                     reqD_mem = 1'b1;
                     ready_next = 1'b0;
                     reqD_cache_write = 1'b1;

@@ -134,7 +134,7 @@ module decode_stage(
     );
 
 
-    assign lower_half_instruction_internal = { {16{instruction_internal[31]}}, instruction_internal };
+    assign lower_half_instruction_internal = { 16'b0, instruction_internal[15:0] };
     assign regD_reg_internal = instruction_internal[20:16];
     assign regD_imme_internal = instruction_internal[15:11];
 
