@@ -1,5 +1,6 @@
 module ram_memory(    
     input reset, 
+    input clk,
     input [19:0] data_requested,where_to_write,
     output reg [127:0] data_returned,
     input [127:0] data_to_write,
@@ -9,7 +10,7 @@ module ram_memory(
 
     reg [31:0] shifted_adress,shifted_adress_write;
     int k,j;
-    always @ (*) begin
+    always @ (negedge clk) begin
         
         if (reset == 1'b1) begin
             /*for (int i=0; i < 1048576; i++) begin

@@ -25,6 +25,7 @@ module memory_controller (
     reg [127:0] data_to_write;
     ram_memory ram_memory(
         .reset(reset),
+        .clk(clk),
         .data_requested(data_req_to_mem),
         .data_returned(data_req_by_cache),
         .data_to_write(data_to_write),

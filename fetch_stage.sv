@@ -19,15 +19,15 @@ module fetch_stage(
     output reg TLB_MISS);
 
     wire [31:0] PC_internal_plus_4,instruction_internal,PC_address_to_PC_int;
-    reg [31:0] PC_TLB_MISS,PC_address_to_PC;
-    wire [31:0] PC_internal_plus_4, PC_internal_plus_4_int,PC_address_to_PC,instruction_internal;
-    wire [31:0] PC_INTERNAL;
+    reg [31:0] PC_TLB_MISS;
+    wire [31:0] PC_internal_plus_4_int;
     reg cache_hit;
     int count_ready_next_inst;
     wire [19:0] PhysicalAddress_tlb;
     wire fetch_tlb, fetch_cache;
     wire [31:0] PC_INTERNAL;
     assign TLB_MISS_TOT = TLB_MISS | TLB_MISS_MEM;
+
     mux4Data muxSelectPC(
         .select({TLB_MISS_TOT,BRANCH}),
         .a(PC_internal_plus_4),
@@ -79,17 +79,6 @@ module fetch_stage(
         .regOut(PC_INTERNAL)
     );
 
-    flipflop PC(
-        .clk(clk),
-        .reset(reset),
-        .writeEn(EN_REG & !read_ready_from_mem & cache_hit ),
-        .regIn(PC_address_to_PC),
-        .regOut(PC_INTERNAL)
-    );
-
-    assign instruction = instruction_internal;
-
-
     //STAGE REGISTER 
     always @ (posedge clk) begin
 
@@ -99,11 +88,11 @@ module fetch_stage(
         end
         else if (EN_REG && !read_ready_from_mem && cache_hit && !TLB_MISS_INT && fetch_tlb && fetch_cache) begin
             PC_TLB <= PC_INTERNAL;
-            PCnext <= PC_address_to_PC;
+            PCnext <= PC_address_to_PC_int;
             TLB_MISS = TLB_MISS_INT;
             instruction = instruction_internal;
             //count_ready_next_inst <= 1;
-
+        end
         /*if (count_ready_next_inst == 0) begin
             count_ready_next_inst = 1;
         end
