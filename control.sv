@@ -113,7 +113,7 @@ module control (
                 ALU_OP <= 2'b00;
                 regD <= instruction[20:16];
                 regB <= 6'b000000;
-                is_immediate  <= 0;
+                is_immediate  <= 1;
             end
             6'b000100: begin
                 WB_EN <= 1;
@@ -125,7 +125,7 @@ module control (
                 ALU_OP <= 2'b00;
                 regD <= instruction[20:16];
                 regB <= 6'b000000;
-                is_immediate  <= 0;
+                is_immediate  <= 1;
             end
             //Store
             6'b000101: begin
@@ -138,7 +138,7 @@ module control (
                 ALU_OP <= 2'b00;
                 regB <= instruction[20:16];
                 regD <= 6'b000000;
-                is_immediate  <= 0;
+                is_immediate  <= 1;
             end
             6'b000110: begin
                 WB_EN <= 0;
@@ -150,7 +150,7 @@ module control (
                 ALU_OP <= 2'b00;
                 regB <= instruction[20:16];
                 regD <= 6'b000000;
-                is_immediate  <= 0;
+                is_immediate  <= 1;
             end
             //Move
             6'b000111: begin
