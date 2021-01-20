@@ -25,16 +25,16 @@ module data_cache_generator_store_buffer (
            
             count =0;
             count_write=0;
-            for (int i = 0; i < 31;i++) begin
+            for (int i = 0; i < 11;i++) begin
                 reads[i] = 0;
             end
-            for (int i = 20; i < 64;i++) begin
+            for (int i = 11; i < 64;i++) begin
                 reads[i] = 1;
             end
-            for (int i = 20; i < 64;i++) begin
+            for (int i = 11; i < 64;i++) begin
                 writes[i] = 0;
             end
-            for (int i = 0; i < 20;i++) begin
+            for (int i = 0; i < 11;i++) begin
                 writes[i] = 1;
             end
 
@@ -44,12 +44,12 @@ module data_cache_generator_store_buffer (
             coses_a_fer[3] <=   32'b00000000000000000000000000001100;
             coses_a_fer[4] <=   32'b00000000000000000000000000010000;
             coses_a_fer[5] <=   32'b00000000000000000000000000010100;
-            coses_a_fer[6] <=   32'b00000000000000000000000000011000;
+            coses_a_fer[6] <=   32'b00000000000000000000000000010100;
             coses_a_fer[7] <=   32'b00000000000000000000000000011100;
             coses_a_fer[8] <=   32'b00000000000000000000000000100000;
             coses_a_fer[9] <=   32'b00000000000000000000000000100100;
             coses_a_fer[10] <=  32'b00000000000000000000000000101000;
-            coses_a_fer[11] <=  32'b00000000000000000000000000101100;
+            coses_a_fer[11] <=  32'b00000000000000000000000000101000;
             coses_a_fer[12] <=  32'b00000000000000000000000000110000;
             coses_a_fer[13] <=  32'b00000000000000000000000000110100;
             coses_a_fer[14] <=  32'b00000000000000000000000000111000;

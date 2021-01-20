@@ -45,7 +45,7 @@ module decode_stage(
     assign EN_REG_DECODE = EN_REG_DECODE_INT;
     assign EN_REG_ALU = EN_REG_ALU_INT;
     assign EN_REG_MEM = EN_REG_MEM_INT;
-
+    assign FUNCTION_INT = instruction [31:26];
     control control(
         .clk(clk),
         .reset(reset),
@@ -56,7 +56,6 @@ module decode_stage(
         .MEM_W_EN(MEM_W_EN_INT),
         .MEM_TO_REG(MEM_TO_REG_INT),
         .WB_EN(WB_EN_INT),
-        .FUNCTION(FUNCTION_INT),
         .regA(regA_int),
         .regB(regB_int),
         .regD(regD_int),
@@ -77,7 +76,7 @@ module decode_stage(
         .clk(clk),
         .regA(regA_int),
         .regB(regB_int),
-        .regD(regD_int),
+        .regD(registerD),
         .data_to_w(registerD_data),
         .RegWriteEn(RegW_en),
         .regA_data(regAdata_internal),
@@ -151,7 +150,7 @@ module decode_stage(
                 PCNEXT<= PCNEXT_init;
                 WB_EN <= WB_EN_INT;
                 MEM_R_EN <= MEM_R_EN_INT;
-                regD_reg <= regD_reg_internal;
+                regD_reg <= regD_int;
                 regD_imme <= regD_imme_internal;
                 ALU_REG_DEST <= ALU_REG_DEST_INT;
                 is_BRANCH <= IS_BRANCH_INT;

@@ -10,7 +10,6 @@ module control (
     output reg MEM_TO_REG,
     output reg WB_EN,
     output reg [1:0] ALU_OP,
-    output reg [5:0] FUNCTION ,
     output reg [4:0] regA, regB, regD,
     output reg EN_REG_FETCH, EN_REG_DECODE, EN_REG_ALU, EN_REG_MEM,
     output reg is_immediate,
@@ -64,7 +63,6 @@ module control (
 
     always @ ( * ) begin 
 
-        FUNCTION <= FUNCTION_INT;
         case({FUNCTION_INT})
             6'b000000: begin
                 WB_EN <= 1;
@@ -92,7 +90,7 @@ module control (
             end
             6'b000010: begin
                 WB_EN <= 1;
-                ALU_REG_DEST <= 0;
+                ALU_REG_DEST <= 1;
                 is_branch <= 0;
                 MEM_R_EN <= 0;
                 MEM_W_EN <= 0;
@@ -180,15 +178,15 @@ module control (
             end
             6'b001001: begin
                 WB_EN <= 1;
-                ALU_REG_DEST <= 0;
-                is_branch <= 0;
+                ALU_REG_DEST <= 1;
+                is_branch <= 1;
                 MEM_R_EN <= 0;
                 MEM_W_EN <= 0;
                 MEM_TO_REG <= 0;
-                ALU_OP <= 2'b00;
-                regD <= instruction[20:16];
-                regB <= 6'b000000;
-                is_immediate  <= 0;
+                ALU_OP <= 2'b01;
+                regD <= 6'b000000;
+                regB <= instruction[20:16];
+                is_immediate  <= 1;
             end
             //Branches      
             6'b001010: begin
@@ -267,6 +265,7 @@ module control (
             EN_REG_ALU = 1;
             EN_REG_MEM = 1;
             injecting_nop = 1'b1;
+             WB_EN =0; 
         end
         else begin
             EN_REG_FETCH = 1;
@@ -277,7 +276,8 @@ module control (
             EN_REG_FETCH = 0;
             EN_REG_DECODE = 0;
             EN_REG_ALU = 0;
-            EN_REG_MEM = 0;     
+            EN_REG_MEM = 0;
+            WB_EN =0; 
         end
         else if (block_pipe_data_cache  == 1'b0 && block_pipe_instr_cache == 1'b0) begin
             EN_REG_FETCH = 1;
@@ -295,6 +295,7 @@ module control (
             EN_REG_MEM = 1;
             inject_nop= 32'b0;
             injecting_nop = 1'b0;
+
         end
 
         
